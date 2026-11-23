@@ -12,6 +12,7 @@
 
 from __future__ import annotations
 
+import argparse
 import calendar
 import html
 import json
@@ -191,8 +192,12 @@ def parse_entry_datetime(entry: Any) -> datetime | None:
     return None
 
 
-def fetch_single_feed(feed_info: dict[str, str], cutoff_utc: datetime) -> list[dict[str, Any]]:
-    """抓取單一 RSS 來源並篩選過去指定時數內的文章。"""
+def fetch_single_feed(
+    feed_info: dict[str, str],
+    start_utc: datetime,
+    end_utc: datetime | None = None,
+) -> list[dict[str, Any]]:
+    """抓取單一 RSS 來源並篩選指定時間區間內的文章。"""
     source_name = feed_info["name"]
     feed_url = feed_info["url"]
     articles: list[dict[str, Any]] = []
@@ -227,7 +232,9 @@ def fetch_single_feed(feed_info: dict[str, str], cutoff_utc: datetime) -> list[d
 
     for entry in parsed.entries:
         published_dt = parse_entry_datetime(entry)
-        if published_dt is None or published_dt < cutoff_utc:
+        if published_dt is None or published_dt < start_utc:
+            continue
+        if end_utc is not None and published_dt > end_utc:
             continue
 
         title = clean_html(entry.get("title", ""), max_length=240)
@@ -252,26 +259,47 @@ def fetch_single_feed(feed_info: dict[str, str], cutoff_utc: datetime) -> list[d
             }
         )
 
-    print(f"[RSS] {source_name}：過去 {LOOKBACK_HOURS} 小時內取得 {len(articles)} 則文章")
+    print(f"[RSS] {source_name}：區間內取得 {len(articles)} 則文章")
     return articles
 
 
-def fetch_recent_articles() -> list[dict[str, Any]]:
+def fetch_recent_articles(
+    start_utc: datetime | None = None,
+    end_utc: datetime | None = None,
+    exclude_urls: set[str] | None = None,
+) -> list[dict[str, Any]]:
     """彙整所有 RSS 來源的文章、依網址去重並依發布時間由新到舊排序。"""
     now_utc = datetime.now(timezone.utc)
-    cutoff_utc = now_utc - timedelta(hours=LOOKBACK_HOURS)
-    print(f"開始抓取過去 {LOOKBACK_HOURS} 小時內的 AI 新聞（截止時間：{cutoff_utc.isoformat()}）...")
+    if start_utc is None:
+        start_utc = now_utc - timedelta(hours=LOOKBACK_HOURS)
+
+    range_desc = (
+        f"{start_utc.astimezone(TAIWAN_TZ).strftime('%Y-%m-%d %H:%M')} ~ "
+        f"{end_utc.astimezone(TAIWAN_TZ).strftime('%Y-%m-%d %H:%M')} (UTC+8)"
+        if end_utc is not None
+        else f"過去 {LOOKBACK_HOURS} 小時內（截止時間：{start_utc.isoformat()}）"
+    )
+    print(f"開始抓取 AI 新聞（{range_desc}）...")
 
     collected: list[dict[str, Any]] = []
     seen_urls: set[str] = set()
 
     for feed_info in RSS_FEEDS:
-        for article in fetch_single_feed(feed_info, cutoff_utc):
+        for article in fetch_single_feed(feed_info, start_utc, end_utc):
             normalized_url = article["url"].split("#", 1)[0].rstrip("/")
             if normalized_url in seen_urls:
                 continue
             seen_urls.add(normalized_url)
             collected.append(article)
+
+    if exclude_urls:
+        fresh = [
+            art
+            for art in collected
+            if art["url"].split("#", 1)[0].rstrip("/") not in exclude_urls
+        ]
+        if len(fresh) >= 6:
+            collected = fresh
 
     collected.sort(key=lambda item: item["published_utc"], reverse=True)
     if len(collected) > MAX_CANDIDATE_ARTICLES:
@@ -429,21 +457,28 @@ def load_archive(path: Path) -> list[dict[str, Any]]:
         return []
 
 
-def update_archive(briefing: DailyBriefing, now_tw: datetime) -> list[dict[str, Any]]:
-    """移除同日期舊資料、將今日簡報插入陣列最前方，最多保留最近 60 天並寫回。"""
-    today_str = now_tw.strftime("%Y-%m-%d")
+def update_archive(
+    briefing: DailyBriefing,
+    now_tw: datetime,
+    target_date_str: str | None = None,
+) -> list[dict[str, Any]]:
+    """移除同日期舊資料、寫入指定日期簡報並依日期由新到舊排序，最多保留最近 60 天。"""
+    date_str = target_date_str or now_tw.strftime("%Y-%m-%d")
     archive = load_archive(ARCHIVE_PATH)
 
     # 移除同日期（YYYY-MM-DD）的舊資料
-    filtered = [entry for entry in archive if isinstance(entry, dict) and entry.get("date") != today_str]
+    filtered = [entry for entry in archive if isinstance(entry, dict) and entry.get("date") != date_str]
 
-    today_record: dict[str, Any] = {
-        "date": today_str,
+    record: dict[str, Any] = {
+        "date": date_str,
         "generated_at": now_tw.isoformat(timespec="seconds"),
         "items": [item.model_dump(mode="json") for item in briefing.items],
     }
 
-    updated = [today_record, *filtered][:MAX_ARCHIVE_DAYS]
+    updated = [record, *filtered]
+    updated.sort(key=lambda entry: str(entry.get("date", "")), reverse=True)
+    updated = updated[:MAX_ARCHIVE_DAYS]
+
     ARCHIVE_PATH.write_text(
         json.dumps(updated, ensure_ascii=False, indent=2) + "\n",
         encoding="utf-8",
@@ -451,30 +486,82 @@ def update_archive(briefing: DailyBriefing, now_tw: datetime) -> list[dict[str, 
     return updated
 
 
-def main() -> int:
-    load_local_env(ENV_PATH)
+def get_existing_urls_except(target_date_str: str) -> set[str]:
+    """收集其他已存檔日期使用過的網址，回補歷史日期時優先避免跨日重複。"""
+    urls: set[str] = set()
+    for entry in load_archive(ARCHIVE_PATH):
+        if not isinstance(entry, dict) or entry.get("date") == target_date_str:
+            continue
+        for item in entry.get("items") or []:
+            if isinstance(item, dict) and item.get("url"):
+                urls.add(str(item["url"]).split("#", 1)[0].rstrip("/"))
+    return urls
 
+
+def process_single_date(target_date_str: str | None = None) -> int:
+    """抓取並更新單一日期（未指定時抓取過去 28 小時並記為台灣今日）。"""
     now_tw = datetime.now(TAIWAN_TZ)
-    today_tw = now_tw.strftime("%Y-%m-%d")
-    print(f"=== 每日 AI 新聞簡報產生器（台灣日期：{today_tw}） ===")
 
-    articles = fetch_recent_articles()
+    if target_date_str:
+        try:
+            day_start_tw = datetime.strptime(target_date_str, "%Y-%m-%d").replace(tzinfo=TAIWAN_TZ)
+        except ValueError:
+            print(f"[錯誤] 日期格式不正確（請使用 YYYY-MM-DD）：{target_date_str}", file=sys.stderr)
+            return 1
+        day_end_tw = day_start_tw + timedelta(days=1) - timedelta(seconds=1)
+        print(f"=== 每日 AI 新聞簡報回補（目標台灣日期：{target_date_str}） ===")
+        exclude_urls = get_existing_urls_except(target_date_str)
+        articles = fetch_recent_articles(
+            start_utc=day_start_tw.astimezone(timezone.utc),
+            end_utc=day_end_tw.astimezone(timezone.utc),
+            exclude_urls=exclude_urls,
+        )
+        effective_date = target_date_str
+    else:
+        effective_date = now_tw.strftime("%Y-%m-%d")
+        print(f"=== 每日 AI 新聞簡報產生器（台灣日期：{effective_date}） ===")
+        articles = fetch_recent_articles()
+
     if not articles:
-        print("[錯誤] 過去 28 小時內未抓取到任何 RSS 文章，請檢查網路連線或 RSS 來源狀態。", file=sys.stderr)
+        print(f"[錯誤] 日期 {effective_date} 未抓取到任何 RSS 文章，請檢查網路連線或 RSS 存量。", file=sys.stderr)
         return 1
 
     try:
-        briefing = curate_news_with_gemini(articles, today_tw)
+        briefing = curate_news_with_gemini(articles, effective_date)
     except Exception as exc:
         print(f"[錯誤] 呼叫 Gemini API 失敗：{exc}", file=sys.stderr)
         return 1
 
-    updated_archive = update_archive(briefing, now_tw)
+    updated_archive = update_archive(briefing, now_tw, target_date_str=effective_date)
     print(
-        f"完成！已精選 {len(briefing.items)} 則新聞寫入 {ARCHIVE_PATH.name}，"
+        f"完成！已精選 {len(briefing.items)} 則新聞寫入 {ARCHIVE_PATH.name}（日期：{effective_date}），"
         f"目前共保存 {len(updated_archive)} 天歷史紀錄。"
     )
     return 0
+
+
+def main() -> int:
+    load_local_env(ENV_PATH)
+
+    parser = argparse.ArgumentParser(description="抓取並生成每日 AI 新聞簡報")
+    parser.add_argument(
+        "--dates",
+        type=str,
+        default="",
+        help="選填：指定要回補的台灣日期（YYYY-MM-DD，多日請用逗號分隔）",
+    )
+    args = parser.parse_args()
+
+    raw_dates = args.dates.strip() or os.environ.get("TARGET_DATES", "").strip()
+    if raw_dates:
+        date_list = [d.strip() for d in raw_dates.split(",") if d.strip()]
+        for d in date_list:
+            code = process_single_date(d)
+            if code != 0:
+                return code
+        return 0
+
+    return process_single_date(None)
 
 
 if __name__ == "__main__":

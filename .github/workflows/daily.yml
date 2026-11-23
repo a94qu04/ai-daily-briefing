@@ -5,6 +5,11 @@ on:
     # 每天 UTC 02:00（台灣時間早上 10:00）自動執行
     - cron: "0 2 * * *"
   workflow_dispatch:
+    inputs:
+      target_dates:
+        description: "選填：指定要回補的台灣日期（YYYY-MM-DD，多日以逗號分隔，留空則抓取今日）"
+        required: false
+        default: ""
 
 permissions:
   contents: write
@@ -30,6 +35,7 @@ jobs:
       - name: Fetch and summarize daily AI news
         env:
           GEMINI_API_KEY: ${{ secrets.GEMINI_API_KEY }}
+          TARGET_DATES: ${{ inputs.target_dates }}
         run: python fetch_news.py
 
       - name: Commit and push updated archive.json
