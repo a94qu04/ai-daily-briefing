@@ -68,7 +68,13 @@ LOOKBACK_HOURS = 28
 MAX_ARCHIVE_DAYS = 60
 MAX_CANDIDATE_ARTICLES = 80
 HTTP_TIMEOUT_SECONDS = 20
-MODEL_NAME = os.environ.get("GEMINI_MODEL", "gemini-3.8-flash")
+DEFAULT_MODELS = [
+    "gemini-3.8-flash",
+    "gemini-3.5-flash-lite",
+    "gemini-flash-lite-latest",
+    "gemini-flash-latest",
+]
+MODEL_NAME = os.environ.get("GEMINI_MODEL", DEFAULT_MODELS[0])
 
 BASE_DIR = Path(__file__).resolve().parent
 ARCHIVE_PATH = BASE_DIR / "archive.json"
@@ -310,42 +316,54 @@ def curate_news_with_gemini(articles: list[dict[str, Any]], today_tw: str) -> Da
     client = genai.Client(api_key=api_key)
     prompt = build_prompt(articles, today_tw)
 
-    max_attempts = 4
+    candidate_models = [MODEL_NAME] + [m for m in DEFAULT_MODELS if m != MODEL_NAME]
+    max_attempts_per_model = 2
     response = None
     last_error: Exception | None = None
 
-    for attempt in range(1, max_attempts + 1):
-        print(f"正在呼叫 {MODEL_NAME} 進行新聞精選與繁體中文摘要（第 {attempt}/{max_attempts} 次）...")
-        try:
-            response = client.models.generate_content(
-                model=MODEL_NAME,
-                contents=prompt,
-                config=types.GenerateContentConfig(
-                    system_instruction=SYSTEM_INSTRUCTION,
-                    response_mime_type="application/json",
-                    response_schema=DailyBriefing,
-                    temperature=0.3,
-                ),
-            )
-            break
-        except Exception as exc:
-            last_error = exc
-            err_msg = str(exc)
-            is_transient = any(
-                code in err_msg for code in ("503", "UNAVAILABLE", "429", "RESOURCE_EXHAUSTED", "500", "INTERNAL")
-            )
-            if is_transient and attempt < max_attempts:
-                wait_seconds = 5 * (2 ** (attempt - 1))
-                print(
-                    f"[警告] Gemini API 暫時忙碌（{exc}），將於 {wait_seconds} 秒後重試...",
-                    file=sys.stderr,
+    for model_id in candidate_models:
+        for attempt in range(1, max_attempts_per_model + 1):
+            print(f"正在呼叫 {model_id} 進行新聞精選與繁體中文摘要（第 {attempt}/{max_attempts_per_model} 次）...")
+            try:
+                response = client.models.generate_content(
+                    model=model_id,
+                    contents=prompt,
+                    config=types.GenerateContentConfig(
+                        system_instruction=SYSTEM_INSTRUCTION,
+                        response_mime_type="application/json",
+                        response_schema=DailyBriefing,
+                        temperature=0.3,
+                    ),
                 )
-                time.sleep(wait_seconds)
-                continue
-            raise
+                break
+            except Exception as exc:
+                last_error = exc
+                err_msg = str(exc)
+                is_not_found = "404" in err_msg or "NOT_FOUND" in err_msg
+                is_transient = any(
+                    code in err_msg
+                    for code in ("503", "UNAVAILABLE", "429", "RESOURCE_EXHAUSTED", "500", "INTERNAL")
+                )
+                if is_not_found:
+                    print(f"[警告] 模型 {model_id} 不可用，嘗試下一個備援模型...", file=sys.stderr)
+                    break
+                if is_transient and attempt < max_attempts_per_model:
+                    wait_seconds = 5 * attempt
+                    print(
+                        f"[警告] {model_id} 暫時忙碌（{exc}），將於 {wait_seconds} 秒後重試...",
+                        file=sys.stderr,
+                    )
+                    time.sleep(wait_seconds)
+                    continue
+                if is_transient:
+                    print(f"[警告] {model_id} 持續忙碌，嘗試切換至下一個備援模型...", file=sys.stderr)
+                    break
+                raise
+        if response is not None:
+            break
 
     if response is None:
-        raise RuntimeError(f"呼叫 Gemini API 多次重試後仍失敗：{last_error}")
+        raise RuntimeError(f"所有候選模型均無法完成請求，最後錯誤：{last_error}")
 
     if response.parsed is not None and isinstance(response.parsed, DailyBriefing):
         return response.parsed
