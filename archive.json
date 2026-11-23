@@ -268,5 +268,262 @@
         "url": "https://www.theverge.com/tech/1039554/un-regulations-killer-robots"
       }
     ]
+  },
+  {
+    "date": "2026-11-02",
+    "generated_at": "2026-11-24T04:52:04+08:00",
+    "items": [
+      {
+        "category": "模型與技術突破",
+        "source": "INSIDE 硬塞",
+        "title": "DeepSeek 推出 Super-agent 架構，打造 24 小時自主 AI 代理與跨平台多工作業",
+        "bullets": [
+          "DeepSeek 發表全新的 Super-agent（超代理）系統架構，實現 24 小時不間斷的自主 AI 代理運作。",
+          "該架構支援跨平台並行處理多項複雜任務，顯著強化 AI 模型在無人干預環境下的自主應變能力。",
+          "透過優化任務調度與資源分配機制，大幅降低長效任務執行過程中的邏輯偏離與錯誤率。"
+        ],
+        "analysis": "Super-agent 架構象徵 AI 代理從單一對話輔助轉向全自動化營運，未來將大幅加速企業流程自動化（RPA）與軟體開發自動化的落地進程。",
+        "url": "https://news.google.com/rss/articles/CBMiiwFBVV95cUxQNW9OMy05V1JlWWppbXdhMmVzTFI5V3lrMDZ3ZHhQS3ZDUEVCV3lXOUFvZVdFc2NSTTdPU3B3MEh5X1NhaS1yb1hEeGd3d3ZTNmxsVnVTeGZJVk1jQnF0RmZyRE01QVN1eklBdFExVmpmTVR6c1lDQS11TXpWVlF3YWVORmZuX2JmUjNN?oc=5",
+        "related_history": [
+          {
+            "date": "2026-11-01",
+            "title": "AI 代理人無需越權即可失控，專家呼籲建立防範代理人異常的新型控管機制",
+            "relation": "隨著 DeepSeek 推出 24 小時自主 AI 代理架構，AI 代理人的自主營運風險與控管機制再次引發業界重視。"
+          }
+        ]
+      },
+      {
+        "category": "模型與技術突破",
+        "source": "VentureBeat AI",
+        "title": "麻省理工學院利用 GPT-6 Astra 直接編輯 Qwen 開源權重，大幅提升數學推論能力",
+        "bullets": [
+          "麻省理工學院（MIT）研究團隊運用 GPT-6 Astra 直接編輯 Qwen 開源模型的神經網路權重。",
+          "此技術被形容為神經網路的「基因編輯」，無需進行大規模重新訓練，即可精準提升模型在 complex 數學領域的推論表現。",
+          "研究證實該方法能顯著節省算力成本，並開辟了對開源模型進行定向功能改進的新途徑。"
+        ],
+        "analysis": "直接編輯模型權重突破了傳統微調與 RLHF 的算力瓶頸，為開源模型社群提供了一套高度精準且低成本的模型定向優化正規方法。",
+        "url": "https://news.google.com/rss/articles/CBMi-wFBVV95cUxNVE9yblFoMWhHbklPREJlcjM5SjJ1UDNDQkdXOE1UUUR6MVFvaWNtamE4M1ZCMmhrSFZPeHNOcmRuNXh3LWNHREpzSnVGRlJTdmJVWWZrSDdkZXp0cUVTMDdMZzJnaTZwTW4zRHBDNVB1R2tLdTdKbWFQV3pSa2Z2SVpiTHJnZFR3UVdNX2VWNHIwQ2xxZ2ZnT0lURWVzQXNjWnNMLVZVM09Wd2p5ZVRTLVpRT2FiWmc5d2xNX0lqLUg3aWxic2ExSWlRTFVzTjVxX0tjampCWEVkaE1jaDctbkRYb0Vka1UzQjRRREh6REYybUtBekxHNm82Zw?oc=5",
+        "related_history": [
+          {
+            "date": "2026-11-01",
+            "title": "開源權重模型性價比大幅提升，企業無須承擔自建基礎設施高額成本",
+            "relation": "本突破進一步證明透過直接修改開源權重，能以更低成本優化模型特定領域能力。"
+          }
+        ]
+      },
+      {
+        "category": "政策法規與資安隱私",
+        "source": "INSIDE 硬塞",
+        "title": "xAI Grok API 將於 11 月 7 日起全面預設套用隱形浮水印",
+        "bullets": [
+          "xAI 宣布自 11 月 7 日起，其 Grok API 的輸出內容將預設加上隱形浮水印，涵蓋旗下 7 款生成式模型。",
+          "該政策適用於全球市場，但企業管理員可依據個別模型彈性設定是否選擇退出（Opt-out）。",
+          "隱形浮水印旨在提升生成內容的可追溯性，協助開發者與監管單位辨識由合成媒體產出的資料。"
+        ],
+        "analysis": "xAI 主動在 API 層級導入預設浮水印，反映出 AI 廠商因應全球嚴格監管趨勢，試圖在內容溯源與用戶使用彈性之間取得平衡。",
+        "url": "https://news.google.com/rss/articles/CBMigwFBVV95cUxPYmNEVl9xOVljQ0FnVkxzSWE3NHVGUnI1ejhQY1NRMXMtNnRsRzFVZzJhLUVsM25wdFlXNmFfNGlDb1lVVkhxN2kxaW5QV0JEQ3FtY2FwRnEyeU4zRlh3OGpPSGJEZlBaS1NXZTRHQzdyVWFqa2VHUk53NDVSZzJDc2kyWQ?oc=5",
+        "related_history": []
+      },
+      {
+        "category": "硬體與應用落地",
+        "source": "INSIDE 硬塞",
+        "title": "Waymo 與豐田合作邁向新階段，預計 2027 年起於日本測試 bZ4X 自動駕駛車隊",
+        "bullets": [
+          "Waymo 與豐田汽車（Toyota）的戰略合作邁入下一階段，宣布將於 2027 年起在日本展開以 bZ4X 電動車為基礎的自駕車隊測試。",
+          "雙方將整合 Waymo 的第 6 代自動駕駛系統（Waymo Driver）與豐田的車輛製造平台，驗證複雜城市道路下的營運穩定度。",
+          "此舉標誌著 Waymo 正式將自動駕駛計程車（Robotaxi）商業化驗證的版圖延伸至亞洲市場。"
+        ],
+        "analysis": "傳統車廠與自駕巨頭的深層硬體整合已成趨勢，日本複雜的道路環境將成為驗證 L4 自動駕駛大規模量產與商業化的重要指標。",
+        "url": "https://news.google.com/rss/articles/CBMijgFBVV95cUxQS1VsWU9LWUM4d3dNMXkwdldxem92cmN4ME9zRk01blQ2OVRNZEFQWG9DeVo5UVA2YlVsRzlSWnFhRzJCTzdyZmxxdDQyR0MzSm1haE9vQ0x0T2p1Y0F3S1dTaFU0VE90N3poSkRGdV8xOVk0dlBVREVJRHJEbEt6aXYtZW5CbGx3TzM3SFhB?oc=5",
+        "related_history": []
+      },
+      {
+        "category": "硬體與應用落地",
+        "source": "INSIDE 硬塞",
+        "title": "Anthropic 為 Claude iPhone 語音模式新增 CarPlay 支援並擴展至 33 種語言",
+        "bullets": [
+          "Anthropic 更新 Claude iOS 應用程式，語音模式正式支援 Apple CarPlay 車載系統，方便駕駛在行車過程中進行語音互動。",
+          "Anthropic 同步將語音模式支援的語言數量擴充至 33 種，大幅強化全球跨語種市場的覆蓋率與實用性。",
+          "使用者可透過車載介面啟用 Claude，進行即時行程規劃、內容摘要整理與語音問答。"
+        ],
+        "analysis": "車載場景是 AI 語音助理落地的核心戰場，Anthropic 透過擴張多語言與車載平台整合，展現搶佔車內智慧助理市場的企圖心。",
+        "url": "https://news.google.com/rss/articles/CBMihAFBVV95cUxQWEFhSEZQRUxHN1Rid1dvQUwwM2p2RVJTUG5vOHltNW1NNWtERHpiYVRjNHdtVTN1UUlZcTBsSFBFX1pCSnZYcFlEbDQtTHZWMlVjN2M0ZTczS0RuSVp6czNrSER2c0Rka2t3Qm8tRmx2MXJIeVJ3SjNqUE51QXpTNnM3dlg?oc=5",
+        "related_history": []
+      },
+      {
+        "category": "商業與市場動態",
+        "source": "TechCrunch AI",
+        "title": "Omen AI 出資 1,600 萬美元收購 Aquatic Labs，佈局資料中心液冷與省水技術",
+        "bullets": [
+          "AI 基礎設施新創公司 Omen AI 宣布以 1,600 萬美元收購專攻資料中心水資源管理的 Aquatic Labs。",
+          "兩家公司將結合高階液冷技術與數據監測演算法，共同解決大型 AI 資料中心急劇增加的高耗水與散熱難題。",
+          "併購後將推出整合型伺服器冷卻方案，主打降低 PUE（電力使用效率）與 WUE（水資源利用效率）指標。"
+        ],
+        "analysis": "隨著算力需求暴增，水資源與散熱成為資料中心擴建的關鍵瓶頸，硬體與水資源管理技術的整合併購將成為 AI 供應鏈的新焦點。",
+        "url": "https://techcrunch.com/2026/11/02/omen-ai-adds-liquid-know-how-in-16-million-aquatic-labs-acquisition/",
+        "related_history": [
+          {
+            "date": "2026-11-01",
+            "title": "資料中心建設爭議升溫，首度躍升為美國期中選舉政治焦點議題",
+            "relation": "在資料中心用水與資源爭議延吵之際，業者積極透過收購省水液冷技術降低環境衝擊與營運風險。"
+          }
+        ]
+      },
+      {
+        "category": "硬體與應用落地",
+        "source": "TechCrunch AI",
+        "title": "OpenAI 正式整合 ChatGPT「對話」與「工作」分頁，共享配額資源",
+        "bullets": [
+          "OpenAI 宣布將整合 ChatGPT 使用者介面中的「對話（Chat）」與「工作（Work）」兩個主要分頁。",
+          "改版後，ChatGPT 與程式碼生成工具 Codex 將共享同一個使用配額池（Allocation pool），簡化使用者的資源管理。",
+          "此調整旨在降低用戶切換工具的門檻，並提供跨場景統一的 AI 協作體驗。"
+        ],
+        "analysis": "OpenAI 透過介面與配額池的整合，展現出消除產品線藩籬、簡化訂閱產品結構的策略方向，將有助於提高 Codex 等專業工具的使用率與用戶黏性。",
+        "url": "https://techcrunch.com/2026/11/02/openai-is-finally-merging-chatgpts-chat-and-work-tabs/",
+        "related_history": []
+      },
+      {
+        "category": "政策法規與資安隱私",
+        "source": "The Verge AI",
+        "title": "OpenAI 提議為資料中心自建專用電廠，以降低對周邊社區供電的衝擊",
+        "bullets": [
+          "OpenAI 向政府與監管機構提出建議，主張為新建的大型 AI 資料中心配套興建專屬電廠。",
+          "OpenAI 表示自建專用電廠能防止資料中心過度消耗公共電網資源，保護周邊住宅區與商業區的供電穩定。",
+          "該提議亦為因應地方居民對 AI 資料中心排擠社區電力與推升電費所引發的反彈浪潮。"
+        ],
+        "analysis": "超大型算力中心面對嚴峻的社區反彈與電網承載極限，AI 巨頭不得不轉向「算力與能源一體化」的建設模式，以緩解政治與社會壓力。",
+        "url": "https://news.google.com/rss/articles/CBMipAFBVV95cUxOV3FjalhTU2FDeHp2Qld0UU5XcUZUX3FsS2RqemF0SGlheFdHLUNPWUdNWTVwZkpGUV9RNFhVWVJsb0tlYXNqd2dvbUwwU2VsVEItUi1GeUJvS1pwQUVCVGtOREdNT2RSWjhZem52QUNsQ3FDS3BheXJYTkhuczlURXRZclBaOHcwOEpyODFPdGVKeU02bjdNRWExSEQ1ajFRZG5lag?oc=5",
+        "related_history": [
+          {
+            "date": "2026-11-01",
+            "title": "加州 Prop 45 法案遭指留有漏洞，恐成為資料中心避開嚴格監管的後門",
+            "relation": "面對資料中心能源監管與法規壓力，OpenAI 提出自建電廠方案以舒緩地方電力負擔。"
+          }
+        ]
+      },
+      {
+        "category": "硬體與應用落地",
+        "source": "INSIDE 硬塞",
+        "title": "施振榮成立一人公司並配置 2 位 AI 員工，幾天內即完成新書創作",
+        "bullets": [
+          "宏碁創辦人施振榮成立新型態的「一人公司」，並配置 2 位數位 AI 員工協助進行資料蒐集與內容整理。",
+          "在 AI 員工的協同作業下，施振榮僅耗時幾天即完成個人新書的撰寫與編輯工作。",
+          "此案例展現了高階管理者如何透過 AI 代理人放大個人產能，實現高效率的精實營運模式。"
+        ],
+        "analysis": "科技領袖親自示範個人與 AI 代理協作的極致範例，預示著一人公司與超小規模高產值企業將在 AI 工具普及下成為新一波創業趨勢。",
+        "url": "https://news.google.com/rss/articles/CBMijwFBVV95cUxPN2lISUxvVDZwWWxya3paY1pNQkJoZy1BaEVfRTVxS3ZaQ0hxSDdUVkNYYklLajI3RlM2b0xDWjhZam5ha3d6V3pKVWQwanFHWmNyMXR4OERVblpId1M1cUhxcWxxWWFGQTZVWTB3V1BGNDVsTTYyWVZyWGlJWHMyQkdYSk1xQ2pUUXE0aFZkOA?oc=5",
+        "related_history": []
+      }
+    ]
+  },
+  {
+    "date": "2026-11-01",
+    "generated_at": "2026-11-24T04:51:23+08:00",
+    "items": [
+      {
+        "category": "商業與市場動態",
+        "source": "TechCrunch AI",
+        "title": "消息指 OpenAI 下修新一輪融資目標，市場熱度疑出現降溫跡象",
+        "bullets": [
+          "據傳 OpenAI 在最新一輪融資活動中下修了預期的籌資目標總額。",
+          "投資市場對生成式 AI 鉅額資本支出與實際獲利回報時間的疑慮逐漸增加。",
+          "此次調整可能反映風險投資人對超高估值 AI 新創事業的態度轉趨謹慎。"
+        ],
+        "analysis": "隨著資本市場對生成式 AI 的投資效益評估日益嚴苛，即使是產業龍頭也必須面對市場資本回歸理性的挑戰。",
+        "url": "https://techcrunch.com/2026/10/31/openai-reportedly-lowers-funding-target-for-new-round/",
+        "related_history": []
+      },
+      {
+        "category": "商業與市場動態",
+        "source": "TechCrunch AI",
+        "title": "蘋果執行長強調不會「為了做 AI 而做 AI」，捍衛公司實用導向策略",
+        "bullets": [
+          "蘋果新任執行長為公司目前的 AI 佈局辯護，強調產品應以解決使用者實際問題為核心。",
+          "蘋果選擇不盲目追逐大規模語言模型的軍備競賽，而是聚焦於裝置端與日常體驗的深度整合。",
+          "策略展現出蘋果在面對強烈市場 AI 焦慮時，依然維持其過往重視產品落地與隱私體驗的節奏。"
+        ],
+        "analysis": "蘋果的表態凸顯出科技巨擘在 AI 發展路線上的分歧，一端追求極限模型算力，另一端則專注於極致使用者體驗與實際價值。",
+        "url": "https://techcrunch.com/2026/10/31/apple-ceo-says-the-company-doesnt-want-to-ship-ai-for-ais-sake/",
+        "related_history": []
+      },
+      {
+        "category": "硬體與應用落地",
+        "source": "INSIDE 硬塞",
+        "title": "傳 Meta 攜手傅利葉智能開發人形機器人，重量僅 48 公斤且 3 個月速成",
+        "bullets": [
+          "網路傳出 Meta 與中國傅利葉智能合作，僅耗時 3 個月即打造出名為 Max 的人形機器人。",
+          "機體設計極具輕量化優勢，重量僅約 48 公斤，展現出高度靈活的硬體結構設計。",
+          "合作若屬實，代表科技巨頭正加速將具身智慧（Embodied AI）與硬體供應鏈進行深度整合。"
+        ],
+        "analysis": "人形機器人成為 AI 具體落地的核心戰場，軟體巨頭與專業硬體廠商的快速協同合作將大幅縮短產品開發週期。",
+        "url": "https://news.google.com/rss/articles/CBMisgFBVV95cUxQRldCNURKTVhtWWpfczJiUVBkMTFjSFpwRzRQemdVcktqa0p5WHF6bnN6QXp1ckMtQjhGNXZDc1FHVzdDWEkySlN2T1UySnY1UXpsREhsMzQ3U01ieDNHSUVNNXE1bWlzRHE4eEtSX0h5Snh6QlRROFdXZjNuV2g5QjVOMGs1bk5CY3RqVU9lZGRzeXZ1MEVzck1yS1czbUJ5bDd0SDlzczk1aF9xRlpnRXJ3?oc=5",
+        "related_history": []
+      },
+      {
+        "category": "政策法規與資安隱私",
+        "source": "TechCrunch AI",
+        "title": "法官批准民權團體起訴 xAI，資料中心污染爭議升級違反《清潔空氣法》",
+        "bullets": [
+          "美國法官裁定允許 NAACP 對 xAI 提起的訴訟繼續進行，該訴訟指控其資料中心違反《清潔空氣法》。",
+          "原告指出 xAI 在建置與營運超級算力資料中心時，對當地環境與空氣品質造成顯著負面影響。",
+          "此案件可能為未來 AI 資料中心的環境影響評估與法規監管樹立重要法律判例。"
+        ],
+        "analysis": "隨著 AI 算力需求暴增，資料中心對能源與環境的衝擊已引發社會團體強烈反彈，合規與綠色算力將是企業不可迴避的經營課題。",
+        "url": "https://techcrunch.com/2026/10/31/judge-allows-naacp-lawsuit-over-xai-data-center-pollution-to-move-forward/",
+        "related_history": []
+      },
+      {
+        "category": "模型與技術突破",
+        "source": "VentureBeat AI",
+        "title": "開源權重模型性價比大幅提升，企業無須承擔自建基礎設施高額成本",
+        "bullets": [
+          "開源權重 AI 模型（Open-weight models）成本顯著降低且效能持續逼近專有封閉模型。",
+          "分析指出企業可透過雲端託管與 API 模式靈活導入開源模型，免去維護龐大算力基礎設施的沉重負擔。",
+          "技術演進使輕量化部署與特定領域微調成為中小企業加速 AI 落地的最佳策略。"
+        ],
+        "analysis": "開源模型的品質突破與多元部署管道，正在降低企業導入 AI 技術的門檻，並重塑生成式 AI 的商業生態系統。",
+        "url": "https://news.google.com/rss/articles/CBMi6wFBVV95cUxOSkNoTS1LdUFJYVlNakI0TEFDVWM3UXI4ekc5amllcEtMeG4xaTFKeDZEMzVhUUVHbHB3bXZtWmplTU93UVdnaF9RejdUVldHUkxCTzVvcEYtQkh0aGFKVGZkeUFnNGlQMnpqX2NDakhRcjBBYmk0NGxrWWlsREVjLVU4ejVjOTdlRUxTR2kxRklicDFGUG42bWNqV1FuVGhmNzVWQW16eXQwRklvWmx3VWQ0aGh0ZEtaV0ItVmU0ajZjV3JXWWVxdkVoM1hjQk53cHhpUFpXcjMxNHFzclRCd2RWLXhBN1c1bHRN?oc=5",
+        "related_history": []
+      },
+      {
+        "category": "政策法規與資安隱私",
+        "source": "VentureBeat AI",
+        "title": "AI 代理人無需越權即可失控，專家呼籲建立防範代理人異常的新型控管機制",
+        "bullets": [
+          "最新資安研究指出，自主 AI 代理人即便在未打破現有安全授權防線的情況下，仍可能因邏輯偏離引發嚴重風險。",
+          "傳統以存取權限為核心的資安控制機制已不足以因應具備自主決策能力的 AI 系統。",
+          "企業需轉向建立實時行為監控、情境驗證與安全邊界等針對代理人特性的新型控管架構。"
+        ],
+        "analysis": "隨著 AI 代理人深入企業營運流程，安全性治理必須從傳統的權限防禦演進為對自主行為與決策邏輯的即時掌控。",
+        "url": "https://news.google.com/rss/articles/CBMiwAFBVV95cUxPdFNUa2VUODV4eEZqVHd2bmtJZTFxclhQSFB6c3FsRlZTNUpvanJpc1I2bXpOT2lFSUNnMTJSRTZybGNCMFdKckx5dVdsRVVuSGxrV3NKcjhPalNHN2p2M3Y0V1BMT0JDLUI0M1RPWWVMVk82YnN0OEpBSG9mZXV1SDBRVmkweFpSdWJ4TW0wOFkwR1RaNHRFdlFlT3Riby0zR2s3RS1rc1NRY3Jyc1VuQk1kSV93V1BIZ2lHQ2FYSUs?oc=5",
+        "related_history": []
+      },
+      {
+        "category": "政策法規與資安隱私",
+        "source": "The Verge AI",
+        "title": "加州 Prop 45 法案遭指留有漏洞，恐成為資料中心避開嚴格監管的後門",
+        "bullets": [
+          "加州正在討論的 Prop 45 提案被揭露可能包含針對大規模資料中心開發的特許條款或監管漏洞。",
+          "環保團體與政策專家擔憂，此漏洞將使科技巨頭順利規避當地的碳排放與電力資源限制。",
+          "事件凸顯出地方立法在平衡科技產業基礎建設需求與環境永續之間面臨的巨大挑戰。"
+        ],
+        "analysis": "AI 資料中心的龐大用電與用水需求，正使各州法案成為科技業與環境保護勢力激烈角力的政策戰場。",
+        "url": "https://news.google.com/rss/articles/CBMihAFBVV95cUxOT3RkNG9TUkExVld5WmxPUXpLY2pYWEpNMWQ1d2stRWgycXNaTTg1T2tQMGxGTTVWUzZIYkVKWlY4SHdNaWtPdzA4bGNvY0RNZUo2cDVfcjZ6U3Z1WGU3VUZxaHpfUUZMcFVKc3NJbV9mSV9CdkJtazk2dHBGZ2hLTDJDQ1A?oc=5",
+        "related_history": []
+      },
+      {
+        "category": "商業與市場動態",
+        "source": "TechCrunch AI",
+        "title": "資料中心建設爭議升溫，首度躍升為美國期中選舉政治焦點議題",
+        "bullets": [
+          "在紐約布魯克林的選舉活動中，AI 基礎設施與資料中心對社區資源的影響成為選民關注的核心焦點。",
+          "隨著資料中心擴建帶來噪音、房價與電費上漲疑慮，當地民眾對科技巨頭過度擴張表達強烈不安。",
+          "政治人物被迫在促進科技產業創新與回應基層選民環境焦慮之間尋求平衡。"
+        ],
+        "analysis": "AI 算力基礎設施的社會影響已從單純的產業經濟議題，全面擴散為影響民意與政局發展的政治焦點。",
+        "url": "https://techcrunch.com/2026/10/31/data-centers-are-now-a-midterm-issue-even-in-brooklyn/",
+        "related_history": []
+      }
+    ]
   }
 ]
