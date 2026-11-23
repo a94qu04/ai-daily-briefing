@@ -71,8 +71,9 @@ HTTP_TIMEOUT_SECONDS = 20
 DEFAULT_MODELS = [
     "gemini-3.8-flash",
     "gemini-3.5-flash-lite",
-    "gemini-flash-lite-latest",
-    "gemini-flash-latest",
+    "gemini-3.5-flash",
+    "gemini-3.1-flash-lite",
+    "gemini-2.5-flash-lite",
 ]
 MODEL_NAME = os.environ.get("GEMINI_MODEL", DEFAULT_MODELS[0])
 
@@ -303,8 +304,32 @@ def build_prompt(articles: list[dict[str, Any]], today_tw: str) -> str:
     return "\n".join(lines)
 
 
+def discover_fallback_models(client: genai.Client, already_tried: set[str]) -> list[str]:
+    """向 Gemini API 查詢此帳號目前支援 generateContent 的其他文字模型作為動態備援。"""
+    discovered: list[str] = []
+    excluded_keywords = ("embedding", "imagen", "veo", "tts", "audio", "image", "robotics", "computer-use", "live")
+    try:
+        for model in client.models.list():
+            name = (getattr(model, "name", "") or "").removeprefix("models/")
+            actions = getattr(model, "supported_actions", None) or []
+            if not name.startswith("gemini-") or name in already_tried:
+                continue
+            if any(kw in name.lower() for kw in excluded_keywords):
+                continue
+            if actions and "generateContent" not in actions:
+                continue
+            discovered.append(name)
+    except Exception as exc:
+        print(f"[警告] 查詢可用模型清單失敗：{exc}", file=sys.stderr)
+        return []
+
+    # 優先選擇 flash 系列模型
+    discovered.sort(key=lambda m: (0 if "flash" in m else 1, m), reverse=False)
+    return discovered[:5]
+
+
 def curate_news_with_gemini(articles: list[dict[str, Any]], today_tw: str) -> DailyBriefing:
-    """呼叫 Gemini 2.5 Flash 與 Structured Outputs 精選並摘要新聞。"""
+    """呼叫 Gemini 模型與 Structured Outputs 精選並摘要新聞（含重試與自動備援模型切換）。"""
     api_key = os.environ.get("GEMINI_API_KEY", "").strip()
     if not api_key:
         raise RuntimeError(
@@ -320,12 +345,15 @@ def curate_news_with_gemini(articles: list[dict[str, Any]], today_tw: str) -> Da
     max_attempts_per_model = 2
     response = None
     last_error: Exception | None = None
+    tried_models: set[str] = set()
 
-    for model_id in candidate_models:
+    def try_model(model_id: str) -> Any | None:
+        nonlocal last_error
+        tried_models.add(model_id)
         for attempt in range(1, max_attempts_per_model + 1):
             print(f"正在呼叫 {model_id} 進行新聞精選與繁體中文摘要（第 {attempt}/{max_attempts_per_model} 次）...")
             try:
-                response = client.models.generate_content(
+                return client.models.generate_content(
                     model=model_id,
                     contents=prompt,
                     config=types.GenerateContentConfig(
@@ -335,7 +363,6 @@ def curate_news_with_gemini(articles: list[dict[str, Any]], today_tw: str) -> Da
                         temperature=0.3,
                     ),
                 )
-                break
             except Exception as exc:
                 last_error = exc
                 err_msg = str(exc)
@@ -346,7 +373,7 @@ def curate_news_with_gemini(articles: list[dict[str, Any]], today_tw: str) -> Da
                 )
                 if is_not_found:
                     print(f"[警告] 模型 {model_id} 不可用，嘗試下一個備援模型...", file=sys.stderr)
-                    break
+                    return None
                 if is_transient and attempt < max_attempts_per_model:
                     wait_seconds = 5 * attempt
                     print(
@@ -357,10 +384,23 @@ def curate_news_with_gemini(articles: list[dict[str, Any]], today_tw: str) -> Da
                     continue
                 if is_transient:
                     print(f"[警告] {model_id} 持續忙碌，嘗試切換至下一個備援模型...", file=sys.stderr)
-                    break
+                    return None
                 raise
+        return None
+
+    for model_id in candidate_models:
+        response = try_model(model_id)
         if response is not None:
             break
+
+    if response is None:
+        extra_models = discover_fallback_models(client, tried_models)
+        if extra_models:
+            print(f"[資訊] 偵測到其他可用備援模型：{', '.join(extra_models)}")
+            for model_id in extra_models:
+                response = try_model(model_id)
+                if response is not None:
+                    break
 
     if response is None:
         raise RuntimeError(f"所有候選模型均無法完成請求，最後錯誤：{last_error}")
