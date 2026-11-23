@@ -88,5 +88,185 @@
         "url": "https://infosecu.technews.tw/2026/11/23/chinese-hackers-leverage-ai-agents-launch-automated-attacks/"
       }
     ]
+  },
+  {
+    "date": "2026-11-23",
+    "generated_at": "2026-11-24T01:46:40+08:00",
+    "items": [
+      {
+        "category": "商業與市場動態",
+        "source": "The Verge AI",
+        "title": "黃仁勳重返輝達執掌兵符 董事會投票一致通過復職",
+        "bullets": [
+          "輝達董事會宣布一致投票通過，恢復黃仁勳的執行長職務。",
+          "董事會表示在與黃仁勳進行多次會議與討論後，對其坦承態度及領導能力具備充分信心。",
+          "美方相關出口管制與調查仍將持續運作，但高層營運動盪暫告一段落。"
+        ],
+        "analysis": "黃仁勳快速回歸有助於平息市場對輝達管理階層異動的恐慌，並重新鞏固輝達在 AI 晶片供應鏈的核心領導地位。",
+        "url": "https://www.theverge.com/tech/1039937/nvidia-ceo-jensen-huang-reinstated"
+      },
+      {
+        "category": "商業與市場動態",
+        "source": "科技新報 AI",
+        "title": "Anthropic 完成史上最大 IPO 手握鉅額現金儲備",
+        "bullets": [
+          "Anthropic 透過規模高達 810 億美元的 IPO 與私募配售，籌集創紀錄的資金。",
+          "其目前累積的現金儲備已超越四大科技巨頭的現金總和，提供極為充沛的營運活水。",
+          "早期投資者包括 Notable Capital、GIC 及 Baillie Gifford 均從本次上市獲得顯著回報。"
+        ],
+        "analysis": "龐大的資金儲備使 Anthropic 擁有與 OpenAI 及傳統科技巨頭長期對抗的本錢，並能持續投入先進模型訓練與資料中心建設。",
+        "url": "https://finance.technews.tw/2026/11/23/anthropic-builds-up-a-huge-cash-pile-amid-the-ai-boom/"
+      },
+      {
+        "category": "模型與技術突破",
+        "source": "科技新報 AI",
+        "title": "Google 打造鏡像維度沙盒 為 Chrome Agent 提供安全測試環境",
+        "bullets": [
+          "Google 公開名為「鏡像維度」（Mirror Dimension）的隔離式合成網路系統。",
+          "該平台能精確模擬真實網路環境，供 Chrome Agent 在不影響真實使用者與網站安全的狀況下進行訓練。",
+          "此設計旨在解決自主 AI 代理在執行真實網頁操作時可能產生的資安漏洞與越權風險。"
+        ],
+        "analysis": "建構隔離的合成沙盒是自主 AI 代理走向大眾應用的關鍵防線，將帶動相關安全驗證技術的標準化與普及。",
+        "url": "https://infosecu.technews.tw/2026/11/23/google-chrome-introduces-mirror-dimension-to-safely-test-ai-agents/"
+      },
+      {
+        "category": "模型與技術突破",
+        "source": "科技新報 AI",
+        "title": "OpenAI 首席科學家提議以困惑度作為 AI 發展與安全門檻",
+        "bullets": [
+          "OpenAI 首席科學家建議產業應針對 AI 模型發展速度與能力建立共同約束標準。",
+          "提議採用「困惑度」（Perplexity）作為衡量模型進展與安全邊界的量化指標。",
+          "該提案意在引導業界建立自律防線，降低模型規模過快擴展所帶來的不可控風險。"
+        ],
+        "analysis": "隨著大模型能力邊界不斷擴張，頂尖業者開始尋求建立客觀的安全紅線量測標準，展現對 AI 發展節奏的主動管控趨勢。",
+        "url": "https://technews.tw/2026/11/23/openai-scientists-suggest-perplexity-metric-set-ai-development-industry-thresholds/"
+      },
+      {
+        "category": "硬體與應用落地",
+        "source": "The Verge AI",
+        "title": "沃爾瑪導入 Meta Muse 代理人 實現自動化黑五購物體驗",
+        "bullets": [
+          "沃爾瑪上線「Agent Gateway」介面，開放 Meta 的 AI 代理人 Muse 代表消費者進行購物。",
+          "Muse 可結合沃爾瑪 Sparky AI 助手自動尋找並下單黑色星期五優惠商品。",
+          "系統可在保護使用者隱私與帳號憑證的前提下完成商品搜尋與下單流程。"
+        ],
+        "analysis": "AI 代理直接參與電子商務交易代表消費體驗的新轉折，購物入口將逐漸從傳統搜尋轉變為代理程式間的自動化交涉與執行。",
+        "url": "https://www.theverge.com/ai-artificial-intelligence/1039874/walmart-agent-gateway-meta-muse-black-friday"
+      },
+      {
+        "category": "硬體與應用落地",
+        "source": "科技新報 AI",
+        "title": "台積電重申 AI 長期前景強勁 先進製程持續供不應求",
+        "bullets": [
+          "面對市場對 AI 需求放緩的疑慮，台積電表示全球 AI 需求依然強勁且穩健成長。",
+          "台積電強調高階 AI 晶片所需的先進製程產能持續吃緊，長期展望非常看好。",
+          "晶片代工端正持續調配資源擴建產能，以支撐雲端與邊緣 AI 的龐大需求。"
+        ],
+        "analysis": "作為全球 AI 供應鏈核心，台積電的挺身澄清有效降低了資本市場對 AI 晶片需求過熱見頂的疑慮，確保了算力基礎設施擴建的持續性。",
+        "url": "https://technews.tw/2026/11/23/tsmc-boosts-ai-long-term-outlook-advanced-process-supply-shortages/"
+      },
+      {
+        "category": "政策法規與資安隱私",
+        "source": "科技新報 AI",
+        "title": "自主 AI 代理恐涉資安風險 加州政府正式起訴 OpenAI",
+        "bullets": [
+          "加州政府對 OpenAI 提起訴訟，聚焦於其 AI 代理系統具備自主規劃與執行任務能力帶來的安全威脅。",
+          "檢方主張若缺乏嚴格控管，此類自主代理技術可能被不法份子利用為自動化網路攻擊工具。",
+          "本案將成為針對自主行動 AI 產品法律責任劃分與安全規範的關鍵判例。"
+        ],
+        "analysis": "AI 從被動問答邁向主動代理執行，監管機關對潛在網路安全風險的審查力度急劇上升，企業推廣 AI Agent 將面對更嚴苛的法規挑戰。",
+        "url": "https://infosecu.technews.tw/2026/11/23/california-sues-openai/"
+      }
+    ]
+  },
+  {
+    "date": "2026-11-22",
+    "generated_at": "2026-11-24T01:51:37+08:00",
+    "items": [
+      {
+        "category": "模型與技術突破",
+        "source": "科技新報 AI",
+        "title": "MIT 與康乃爾開發「測試時調適」技術，讓 AI 文字偵測器準確率衝破九成",
+        "bullets": [
+          "麻省理工學院與康乃爾大學導入「測試時調適」（TTA）技術，使 AI 文字偵測器能在部署後持續自主微調。",
+          "該演算法能動態捕捉新型態生成式 AI 的寫作特徵與偽裝文字，將辨識準確度提高至 90% 以上。",
+          "解決傳統偵測器面對更新版大語言模型時辨識率驟降的痛點，顯著提升內容審查效益。"
+        ],
+        "analysis": "測試時調適技術突破了傳統 AI 模型訓練與推論的靜態藩籬，未來可擴大應用於即時內容審查與反偽造安全系統中。",
+        "url": "https://technews.tw/2026/11/22/helping-ai-text-detectors-keep-up-with-changing-conditions/"
+      },
+      {
+        "category": "模型與技術突破",
+        "source": "科技新報 AI",
+        "title": "KAIST 開發 DLLM-VSR 讀唇 AI，無聲辨識詞錯誤率大幅降至 19.4%",
+        "bullets": [
+          "韓國科學技術院（KAIST）團隊推出無聲視訊語音辨識系統 DLLM-VSR，無需音訊即可精確讀唇。",
+          "系統優先挑選最清晰的嘴型幀進行分析，打破傳統按時間序列處理的限制，減少模糊畫面造成的干擾。",
+          "在標準無聲讀唇基準測試中，將單詞辨識錯誤率成功壓低至 19.4%，創下業界新紀錄。"
+        ],
+        "analysis": "該技術在極度嘈雜環境或語音障礙輔助領域展現龐大的落地潛力，為多模態無障礙人機介面帶來新突破。",
+        "url": "https://technews.tw/2026/11/22/scientists-taught-ai-to-read-lips-in-total-silence-and-the-results-are-pretty-impressive/"
+      },
+      {
+        "category": "商業與市場動態",
+        "source": "TechCrunch AI",
+        "title": "輝達最新財報與高層動向引發關注，華爾街與科技巨頭展現分歧觀點",
+        "bullets": [
+          "輝達公布最新季度財報，展現強勁的 AI 晶片需求與營收成長，但市場對高評價與供應鏈瓶頸仍有疑慮。",
+          "部分科技業高層公開呼籲黃仁勳引導產業應對算力資源分配與資本支出過熱的挑戰。",
+          "市場正密切觀察 AI 伺服器資本支出成長是否能持續支撐整體科技股的估值溢價。"
+        ],
+        "analysis": "輝達作為 AI 基礎設施的核心樞紐，其業績與營運決策已成為全球 AI 產業景氣與算力投資力道的關鍵風向球。",
+        "url": "https://techcrunch.com/2026/11/21/a-tale-of-two-nvidias/"
+      },
+      {
+        "category": "商業與市場動態",
+        "source": "TechCrunch AI",
+        "title": "微短劇新創公司引進肖像權授權模式，好萊塢演員提供 AI 數位分身授權",
+        "bullets": [
+          "海外演員開始將自身臉部肖像與數位分身授權給微短劇新創公司，試圖複製中國短劇市場的成功模式。",
+          "平台業者可運用 AI 分身快速生成多語種短劇，大幅降低拍攝成本與製作週期。",
+          "業界專家對演員長期職涯影響與版權歸屬表達擔憂，認為這可能重塑好萊塢的演藝勞動生態。"
+        ],
+        "analysis": "AI 肖像授權使內容生產成本大幅降低，加速生成式 AI 在娛樂影音的商業落地，但也將引發勞動契約與著作權制度的深刻檢視。",
+        "url": "https://techcrunch.com/2026/11/21/is-selling-an-ai-version-of-your-face-to-this-microdrama-startup-the-future-of-hollywood/"
+      },
+      {
+        "category": "硬體與應用落地",
+        "source": "科技新報 AI",
+        "title": "AI 翻轉航空收益管理，導入「訂票後最佳化」實現營收與顧客滿意度雙贏",
+        "bullets": [
+          "航空業者開始導入 AI 技術，將營運策略從傳統「預訂前動態定價」延伸至「預訂後服務最佳化」。",
+          "AI 系統能針對已購票旅客即時預測升等需求、行李加購與行程變更意願，自動推送個人化加值方案。",
+          "實測顯示該技術有效提升航空公司每乘客平均收益，同時顯著改善旅客訂票後的服務滿意度。"
+        ],
+        "analysis": "AI 模型正精細化傳統服務業的生命週期管理，將預測分析落實於顧客購票後的價值挖掘，展現深厚的垂直產業落地價值。",
+        "url": "https://technews.tw/2026/11/22/ai-boosts-post-booking-optimization-aviation-industry/"
+      },
+      {
+        "category": "政策法規與資安隱私",
+        "source": "TechCrunch AI",
+        "title": "對抗 AI 監控生存威脅，加密通訊軟體 Signal 限制行動端截圖功能",
+        "bullets": [
+          "加密通訊平台 Signal 宣布在 iOS 與 Android 應用程式中強化限制截圖保護機制。",
+          "公司高層指出，各界廣泛運用 AI 模型自動擷取並解析螢幕畫面，已對使用者隱私構成生存級威脅。",
+          "此項改變旨在阻斷第三方 AI 監控工具未經授權蒐集私密對話紀錄與圖像數據。"
+        ],
+        "analysis": "面對 AI 自動化圖像擷取與情報分析工具的普及，隱私優先的通訊平台被迫採取更為極端的資安防禦作為。",
+        "url": "https://techcrunch.com/2026/11/21/signal-restricts-mobile-screenshots-as-it-confronts-existential-threat-of-ai-surveillance/"
+      },
+      {
+        "category": "政策法規與資安隱私",
+        "source": "The Verge AI",
+        "title": "聯合國針對「致命自主武器」監管談判失利，各國難就殺手機器人規範達成共識",
+        "bullets": [
+          "聯合國外交官於日內瓦會談結束後，未能就規範或禁止致命自主武器系統（LAWS）制定明確規則。",
+          "多國在談判中意見分歧，最終僅同意繼續「討論可能性方案」，在監管約束力上幾乎無實質進展。",
+          "民團與專家呼籲儘快建立包含 AI 武裝與軍用自動化系統的法律與道德防線，避免軍備競賽失控。"
+        ],
+        "analysis": "軍用 AI 武器化的法規漏洞與地緣政治角力，顯示國際社會在建立全球統一的 AI 倫理與軍事約束機制上面臨極大挑戰。",
+        "url": "https://www.theverge.com/tech/1039554/un-regulations-killer-robots"
+      }
+    ]
   }
 ]
