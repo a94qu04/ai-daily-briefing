@@ -3,11 +3,13 @@
 每日 AI 新聞簡報自動抓取與摘要腳本。
 
 功能說明：
-1. 使用 feedparser 抓取過去 28 小時內的國內外 AI 科技 RSS 新聞。
-2. 透過新版 google-genai SDK 呼叫 gemini-2.5-flash，以 Structured Outputs（Pydantic Schema）
-   精選 6 至 8 則最重要的 AI 新聞，並整理為台灣繁體中文簡報。
-3. 讀取並更新同目錄下的 archive.json，以台灣時間（UTC+8）日期為鍵值，
-   覆蓋同日舊資料、將最新簡報置於陣列最前方，並最多保留最近 60 天紀錄。
+1. 使用 feedparser 抓取過去 28 小時內的國內外 AI 科技 RSS 新聞；
+   回補歷史日期時，自動搭配 TechCrunch 分頁 RSS 與 Google News 日期區間 RSS 彙整完整候選池。
+2. 透過新版 google-genai SDK 呼叫 Gemini Flash 模型，以 Structured Outputs（Pydantic Schema）
+   精選 7 至 10 則最重要的 AI 新聞，整理為台灣繁體中文簡報。
+3. 自動帶入過去最多 60 天的歷史標題清單進行比對，減少跨日重複報導，
+   並標記「相關前期報導（related_history）」供前端點擊跳轉前情提要。
+4. 讀取並更新同目錄下的 archive.json，依台灣時間（UTC+8）日期由新到舊排序，最多保留最近 60 天。
 """
 
 from __future__ import annotations
@@ -22,6 +24,7 @@ import ssl
 import sys
 import time
 import urllib.error
+import urllib.parse
 import urllib.request
 from datetime import datetime, timedelta, timezone
 from enum import Enum
@@ -65,18 +68,48 @@ RSS_FEEDS: list[dict[str, str]] = [
     },
 ]
 
+# 歷史日期回補用的 Google News 站點查詢設定（搭配 TechCrunch 分頁 RSS）
+HISTORICAL_GNEWS_SITES: list[dict[str, str]] = [
+    {
+        "name": "科技新報 AI",
+        "query": "site:technews.tw AI",
+        "locale": "hl=zh-TW&gl=TW&ceid=TW:zh-Hant",
+    },
+    {
+        "name": "The Verge AI",
+        "query": "site:theverge.com AI",
+        "locale": "hl=en-US&gl=US&ceid=US:en",
+    },
+    {
+        "name": "INSIDE 硬塞",
+        "query": "site:inside.com.tw AI",
+        "locale": "hl=zh-TW&gl=TW&ceid=TW:zh-Hant",
+    },
+    {
+        "name": "VentureBeat AI",
+        "query": "site:venturebeat.com AI",
+        "locale": "hl=en-US&gl=US&ceid=US:en",
+    },
+]
+
 LOOKBACK_HOURS = 28
 MAX_ARCHIVE_DAYS = 60
 MAX_CANDIDATE_ARTICLES = 80
 HTTP_TIMEOUT_SECONDS = 20
+GEMINI_TIMEOUT_MS = 90_000
+
 DEFAULT_MODELS = [
+    "gemini-3.5-flash",
     "gemini-3.8-flash",
     "gemini-3.5-flash-lite",
-    "gemini-3.5-flash",
     "gemini-3.1-flash-lite",
-    "gemini-2.5-flash-lite",
+    "gemini-3.6-flash",
+    "gemini-3.7-flash",
 ]
 MODEL_NAME = os.environ.get("GEMINI_MODEL", DEFAULT_MODELS[0])
+
+# 同一次執行批次中記住已驗證成功的模型，避免重複等待忙碌模型
+_LAST_WORKING_MODEL: str | None = None
 
 BASE_DIR = Path(__file__).resolve().parent
 ARCHIVE_PATH = BASE_DIR / "archive.json"
@@ -96,6 +129,20 @@ class NewsCategory(str, Enum):
     BUSINESS_MARKET = "商業與市場動態"
     HARDWARE_APP = "硬體與應用落地"
     POLICY_SECURITY = "政策法規與資安隱私"
+
+
+class RelatedNews(BaseModel):
+    """與本則新聞高度相關的前期歷史報導。"""
+
+    date: str = Field(
+        description="前期報導的台灣日期（YYYY-MM-DD），必須嚴格來自輸入提供的 60 天歷史存檔清單。"
+    )
+    title: str = Field(
+        description="前期報導的完整標題，必須完全照抄輸入提供的 60 天歷史存檔清單，不可改寫或捏造。"
+    )
+    relation: str = Field(
+        description="15 至 35 字的精簡台灣繁體中文脈絡說明，指出本則新聞與該前期報導的延續或關聯。"
+    )
 
 
 class NewsItem(BaseModel):
@@ -121,6 +168,11 @@ class NewsItem(BaseModel):
     url: str = Field(
         description="原始報導完整網址，必須直接沿用輸入清單中的對應連結，不可自行捏造或修改。"
     )
+    related_history: list[RelatedNews] = Field(
+        default_factory=list,
+        max_length=2,
+        description="最多 2 筆與本則新聞高度相關的前期歷史報導（僅限從提供的 60 天歷史存檔清單挑選；若無明確脈絡關聯請回傳空陣列 []）。",
+    )
 
 
 class DailyBriefing(BaseModel):
@@ -128,24 +180,45 @@ class DailyBriefing(BaseModel):
 
     items: list[NewsItem] = Field(
         min_length=1,
-        max_length=8,
-        description="精選出 6 至 8 則當日最重要的 AI 新聞（若候選新聞不足 6 則，則依實際重要新聞數量整理）。",
+        max_length=10,
+        description="精選出 7 至 10 則當日最重要的 AI 新聞（若候選新聞不足 7 則，則依實際重要新聞數量整理）。",
     )
+
+
+class RelinkEntry(BaseModel):
+    """單則既有新聞的相關舊聞回填結果。"""
+
+    index: int = Field(description="該則新聞在輸入清單中的 1-based 編號。")
+    related_history: list[RelatedNews] = Field(
+        default_factory=list,
+        max_length=2,
+        description="最多 2 筆與本則新聞高度相關的前期歷史報導（僅限從提供的 60 天歷史清單挑選，無關聯則為 []）。",
+    )
+
+
+class RelinkResult(BaseModel):
+    """批次為既有新聞補齊相關舊聞脈絡的輸出格式。"""
+
+    entries: list[RelinkEntry]
 
 
 SYSTEM_INSTRUCTION = """你是一位資深的台灣科技與 AI 產業總編輯，負責每天為忙碌的技術決策者、工程師與創業者整理「每日 AI 簡報」。
 
 請嚴格遵守以下編採與用語規範：
 1. 一律使用道地的「台灣繁體中文（zh-TW）」與台灣慣用技術名詞（例如：模型、推論、算力、晶片、伺服器、資料庫、專案、介面、程式碼、開源、預設），避免中國大陸用語或生硬直譯。
-2. 從提供的候選新聞中，精選出 6 至 8 則最具代表性、產業影響力或技術突破性的新聞；若有多家媒體報導同一事件，請整併去重並保留資訊最完整的一則來源與原始連結。
-3. 每則新聞必須歸類至以下四個領域之一，不可自創分類：
+2. 從提供的候選新聞中，精選出 **7 至 10 則**最具代表性、產業影響力或技術突破性的新聞（若候選新聞不足 7 則，則依實際重要新聞數量整理）；若有多家媒體報導同一事件，請整併去重並保留資訊最完整的一則來源與原始連結。
+3. 若提示詞附有「過去 60 天歷史存檔標題清單」：
+   - 避免重複收錄前幾天已報導過且沒有實質新進展的同一事件。
+   - 若當日新聞屬於某個既有事件的後續進展、同一公司／模型／法規的延續動態，請在 `related_history` 中標註最多 2 筆高度相關的前期報導。
+   - `related_history` 的 `date` 與 `title` **必須嚴格逐字照抄**歷史存檔清單中的內容，嚴禁修改標題或自行編造不存在的歷史報導；若無高度相關的前期報導，請直接回傳空陣列 `[]`。
+4. 每則新聞必須歸類至以下四個領域之一，不可自創分類：
    - 模型與技術突破
    - 商業與市場動態
    - 硬體與應用落地
    - 政策法規與資安隱私
-4. 每則新聞的 `bullets` 必須包含 2 至 3 點精煉重點，清楚交代「發生什麼事、關鍵數據或規格、主要參與方」。
-5. `analysis` 請以精簡的 1 至 2 句話點出該新聞背後的商業意義、產業競爭格局或技術落地影響。
-6. `url` 必須原封不動採用輸入候選清單中的真實連結，嚴禁編造、縮短或更改網址。
+5. 每則新聞的 `bullets` 必須包含 2 至 3 點精煉重點，清楚交代「發生什麼事、關鍵數據或規格、主要參與方」。
+6. `analysis` 請以精簡的 1 至 2 句話點出該新聞背後的商業意義、產業競爭格局或技術落地影響。
+7. `url` 必須原封不動採用輸入候選清單中的真實連結，嚴禁編造、縮短或更改網址。
 """
 
 
@@ -167,6 +240,13 @@ def load_local_env(env_path: Path) -> None:
         print(f"[警告] 讀取 .env 失敗：{exc}", file=sys.stderr)
 
 
+def get_ssl_context() -> ssl.SSLContext:
+    """建立含 certifi CA 憑證的 SSL Context。"""
+    if certifi is not None:
+        return ssl.create_default_context(cafile=certifi.where())
+    return ssl.create_default_context()
+
+
 def clean_html(raw_text: str, max_length: int = 420) -> str:
     """移除 HTML 標籤與多餘空白並截斷過長摘要。"""
     if not raw_text:
@@ -177,6 +257,11 @@ def clean_html(raw_text: str, max_length: int = 420) -> str:
     if len(text) > max_length:
         text = text[: max_length - 1].rstrip() + "…"
     return text
+
+
+def strip_gnews_title_suffix(title: str) -> str:
+    """移除 Google News RSS 標題尾端附帶的媒體名稱後綴。"""
+    return re.sub(r"\s+-\s+[^-]+$", "", title).strip()
 
 
 def parse_entry_datetime(entry: Any) -> datetime | None:
@@ -192,16 +277,8 @@ def parse_entry_datetime(entry: Any) -> datetime | None:
     return None
 
 
-def fetch_single_feed(
-    feed_info: dict[str, str],
-    start_utc: datetime,
-    end_utc: datetime | None = None,
-) -> list[dict[str, Any]]:
-    """抓取單一 RSS 來源並篩選指定時間區間內的文章。"""
-    source_name = feed_info["name"]
-    feed_url = feed_info["url"]
-    articles: list[dict[str, Any]] = []
-
+def fetch_feed_raw(feed_url: str, source_name: str) -> feedparser.FeedParserDict | None:
+    """抓取並解析單一 RSS/Atom URL。"""
     req = urllib.request.Request(
         feed_url,
         headers={
@@ -209,27 +286,31 @@ def fetch_single_feed(
             "Accept": "application/rss+xml, application/atom+xml, application/xml, text/xml, */*",
         },
     )
-
-    ssl_context = (
-        ssl.create_default_context(cafile=certifi.where())
-        if certifi is not None
-        else ssl.create_default_context()
-    )
-
     try:
         with urllib.request.urlopen(
-            req, timeout=HTTP_TIMEOUT_SECONDS, context=ssl_context
+            req, timeout=HTTP_TIMEOUT_SECONDS, context=get_ssl_context()
         ) as resp:
             raw_bytes = resp.read()
     except (urllib.error.URLError, TimeoutError, OSError) as exc:
         print(f"[警告] 抓取 RSS 失敗（{source_name} - {feed_url}）：{exc}", file=sys.stderr)
-        return articles
+        return None
 
     parsed = feedparser.parse(raw_bytes)
     if parsed.bozo and not parsed.entries:
         print(f"[警告] 解析 RSS 格式異常（{source_name}）：{parsed.bozo_exception}", file=sys.stderr)
-        return articles
+        return None
+    return parsed
 
+
+def extract_articles_from_parsed(
+    parsed: feedparser.FeedParserDict,
+    source_name: str,
+    start_utc: datetime,
+    end_utc: datetime | None = None,
+    is_gnews: bool = False,
+) -> list[dict[str, Any]]:
+    """從 feedparser 結果抽出指定時間區間內的文章清單。"""
+    articles: list[dict[str, Any]] = []
     for entry in parsed.entries:
         published_dt = parse_entry_datetime(entry)
         if published_dt is None or published_dt < start_utc:
@@ -238,6 +319,8 @@ def fetch_single_feed(
             continue
 
         title = clean_html(entry.get("title", ""), max_length=240)
+        if is_gnews:
+            title = strip_gnews_title_suffix(title)
         link = (entry.get("link") or "").strip()
         summary_raw = entry.get("summary") or entry.get("description") or ""
         if not summary_raw and entry.get("content"):
@@ -245,6 +328,8 @@ def fetch_single_feed(
             if isinstance(first_content, dict):
                 summary_raw = first_content.get("value", "")
         summary = clean_html(summary_raw, max_length=420)
+        if is_gnews and summary == title:
+            summary = ""
 
         if not title or not link:
             continue
@@ -258,8 +343,6 @@ def fetch_single_feed(
                 "published_utc": published_dt,
             }
         )
-
-    print(f"[RSS] {source_name}：區間內取得 {len(articles)} 則文章")
     return articles
 
 
@@ -268,178 +351,123 @@ def fetch_recent_articles(
     end_utc: datetime | None = None,
     exclude_urls: set[str] | None = None,
 ) -> list[dict[str, Any]]:
-    """彙整所有 RSS 來源的文章、依網址去重並依發布時間由新到舊排序。"""
+    """彙整預設 RSS 來源的文章、依網址去重並依發布時間由新到舊排序。"""
     now_utc = datetime.now(timezone.utc)
     if start_utc is None:
         start_utc = now_utc - timedelta(hours=LOOKBACK_HOURS)
 
-    range_desc = (
-        f"{start_utc.astimezone(TAIWAN_TZ).strftime('%Y-%m-%d %H:%M')} ~ "
-        f"{end_utc.astimezone(TAIWAN_TZ).strftime('%Y-%m-%d %H:%M')} (UTC+8)"
-        if end_utc is not None
-        else f"過去 {LOOKBACK_HOURS} 小時內（截止時間：{start_utc.isoformat()}）"
-    )
-    print(f"開始抓取 AI 新聞（{range_desc}）...")
-
+    print(f"開始抓取過去 {LOOKBACK_HOURS} 小時內的 AI 新聞（截止時間：{start_utc.isoformat()}）...")
     collected: list[dict[str, Any]] = []
     seen_urls: set[str] = set()
 
     for feed_info in RSS_FEEDS:
-        for article in fetch_single_feed(feed_info, start_utc, end_utc):
+        parsed = fetch_feed_raw(feed_info["url"], feed_info["name"])
+        if parsed is None:
+            continue
+        items = extract_articles_from_parsed(parsed, feed_info["name"], start_utc, end_utc)
+        print(f"[RSS] {feed_info['name']}：取得 {len(items)} 則文章")
+        for article in items:
             normalized_url = article["url"].split("#", 1)[0].rstrip("/")
             if normalized_url in seen_urls:
                 continue
             seen_urls.add(normalized_url)
             collected.append(article)
 
+    return finalize_candidates(collected, exclude_urls)
+
+
+def fetch_historical_pool(date_list: list[str]) -> list[dict[str, Any]]:
+    """一次抓取涵蓋指定歷史日期清單的完整文章池（TechCrunch 分頁 RSS ＋ Google News 日期區間 RSS）。"""
+    parsed_dates = [datetime.strptime(d, "%Y-%m-%d").replace(tzinfo=TAIWAN_TZ) for d in date_list]
+    min_day = min(parsed_dates)
+    max_day = max(parsed_dates)
+    pool_start_utc = min_day.astimezone(timezone.utc)
+    pool_end_utc = (max_day + timedelta(days=1) - timedelta(seconds=1)).astimezone(timezone.utc)
+
+    print(
+        f"開始預載歷史文章池（{min_day.strftime('%Y-%m-%d')} ~ {max_day.strftime('%Y-%m-%d')}）..."
+    )
+    pool: list[dict[str, Any]] = []
+    seen_urls: set[str] = set()
+
+    def add_batch(items: list[dict[str, Any]]) -> None:
+        for art in items:
+            norm = art["url"].split("#", 1)[0].rstrip("/")
+            if norm in seen_urls:
+                continue
+            seen_urls.add(norm)
+            pool.append(art)
+
+    # 1. TechCrunch AI 分頁 RSS（自動翻頁直到早於目標最早日期）
+    for page in range(1, 22):
+        url = f"https://techcrunch.com/category/artificial-intelligence/feed/?paged={page}"
+        parsed = fetch_feed_raw(url, f"TechCrunch AI (p{page})")
+        if parsed is None or not parsed.entries:
+            break
+        add_batch(
+            extract_articles_from_parsed(parsed, "TechCrunch AI", pool_start_utc, pool_end_utc)
+        )
+        entry_dts = [parse_entry_datetime(e) for e in parsed.entries]
+        valid_dts = [dt for dt in entry_dts if dt is not None]
+        if valid_dts and min(valid_dts) < pool_start_utc:
+            break
+
+    # 2. 預設 RSS（涵蓋最近 1～3 天的直接來源）
+    for feed_info in RSS_FEEDS:
+        if feed_info["name"] == "TechCrunch AI":
+            continue
+        parsed = fetch_feed_raw(feed_info["url"], feed_info["name"])
+        if parsed is None:
+            continue
+        add_batch(
+            extract_articles_from_parsed(parsed, feed_info["name"], pool_start_utc, pool_end_utc)
+        )
+
+    # 3. Google News 站點日期區間 RSS（每 7 天切一段以避開單次 100 筆上限）
+    chunk_start = min_day - timedelta(days=1)
+    while chunk_start <= max_day:
+        chunk_end = min(chunk_start + timedelta(days=7), max_day + timedelta(days=1))
+        after_str = chunk_start.strftime("%Y-%m-%d")
+        before_str = (chunk_end + timedelta(days=1)).strftime("%Y-%m-%d")
+        for site in HISTORICAL_GNEWS_SITES:
+            full_q = urllib.parse.quote(f"{site['query']} after:{after_str} before:{before_str}")
+            gnews_url = f"https://news.google.com/rss/search?q={full_q}&{site['locale']}"
+            parsed = fetch_feed_raw(gnews_url, f"GNews/{site['name']}")
+            if parsed is None:
+                continue
+            add_batch(
+                extract_articles_from_parsed(
+                    parsed,
+                    site["name"],
+                    pool_start_utc,
+                    pool_end_utc,
+                    is_gnews=True,
+                )
+            )
+        chunk_start = chunk_end + timedelta(days=1)
+
+    print(f"歷史文章池預載完成，共彙整 {len(pool)} 則去重候選文章。")
+    return pool
+
+
+def finalize_candidates(
+    collected: list[dict[str, Any]],
+    exclude_urls: set[str] | None = None,
+) -> list[dict[str, Any]]:
+    """過濾跨日重複網址並排序截斷候選文章。"""
     if exclude_urls:
         fresh = [
             art
             for art in collected
             if art["url"].split("#", 1)[0].rstrip("/") not in exclude_urls
         ]
-        if len(fresh) >= 6:
+        if len(fresh) >= 7:
             collected = fresh
 
     collected.sort(key=lambda item: item["published_utc"], reverse=True)
     if len(collected) > MAX_CANDIDATE_ARTICLES:
         collected = collected[:MAX_CANDIDATE_ARTICLES]
-
-    print(f"共彙整 {len(collected)} 則候選新聞。")
     return collected
-
-
-def build_prompt(articles: list[dict[str, Any]], today_tw: str) -> str:
-    """組合提供給 Gemini 模型的候選新聞清單提示詞。"""
-    lines = [
-        f"今日日期（台灣時間）：{today_tw}",
-        f"以下為過去 {LOOKBACK_HOURS} 小時內從國內外科技媒體抓取的 {len(articles)} 則 AI 相關候選新聞：",
-        "",
-    ]
-    for idx, art in enumerate(articles, start=1):
-        published_tw = art["published_utc"].astimezone(TAIWAN_TZ).strftime("%Y-%m-%d %H:%M")
-        lines.append(f"[{idx}] 來源：{art['source']} | 發布時間：{published_tw}")
-        lines.append(f"標題：{art['title']}")
-        lines.append(f"網址：{art['url']}")
-        if art["summary"]:
-            lines.append(f"摘要：{art['summary']}")
-        lines.append("")
-
-    target_count = "6 至 8 則" if len(articles) >= 6 else f"{len(articles)} 則"
-    lines.append(
-        f"請從上述候選清單中精選 {target_count} 最重要的 AI 新聞，整理為結構化的台灣繁體中文每日簡報。"
-    )
-    return "\n".join(lines)
-
-
-def discover_fallback_models(client: genai.Client, already_tried: set[str]) -> list[str]:
-    """向 Gemini API 查詢此帳號目前支援 generateContent 的其他文字模型作為動態備援。"""
-    discovered: list[str] = []
-    excluded_keywords = ("embedding", "imagen", "veo", "tts", "audio", "image", "robotics", "computer-use", "live")
-    try:
-        for model in client.models.list():
-            name = (getattr(model, "name", "") or "").removeprefix("models/")
-            actions = getattr(model, "supported_actions", None) or []
-            if not name.startswith("gemini-") or name in already_tried:
-                continue
-            if any(kw in name.lower() for kw in excluded_keywords):
-                continue
-            if actions and "generateContent" not in actions:
-                continue
-            discovered.append(name)
-    except Exception as exc:
-        print(f"[警告] 查詢可用模型清單失敗：{exc}", file=sys.stderr)
-        return []
-
-    # 優先選擇 flash 系列模型
-    discovered.sort(key=lambda m: (0 if "flash" in m else 1, m), reverse=False)
-    return discovered[:5]
-
-
-def curate_news_with_gemini(articles: list[dict[str, Any]], today_tw: str) -> DailyBriefing:
-    """呼叫 Gemini 模型與 Structured Outputs 精選並摘要新聞（含重試與自動備援模型切換）。"""
-    api_key = os.environ.get("GEMINI_API_KEY", "").strip()
-    if not api_key:
-        raise RuntimeError(
-            "找不到環境變數 GEMINI_API_KEY。請先設定您的 Gemini API 金鑰後再執行，例如：\n"
-            '  PowerShell: $env:GEMINI_API_KEY="您的金鑰"\n'
-            '  Bash/Zsh:   export GEMINI_API_KEY="您的金鑰"'
-        )
-
-    client = genai.Client(api_key=api_key)
-    prompt = build_prompt(articles, today_tw)
-
-    candidate_models = [MODEL_NAME] + [m for m in DEFAULT_MODELS if m != MODEL_NAME]
-    max_attempts_per_model = 2
-    response = None
-    last_error: Exception | None = None
-    tried_models: set[str] = set()
-
-    def try_model(model_id: str) -> Any | None:
-        nonlocal last_error
-        tried_models.add(model_id)
-        for attempt in range(1, max_attempts_per_model + 1):
-            print(f"正在呼叫 {model_id} 進行新聞精選與繁體中文摘要（第 {attempt}/{max_attempts_per_model} 次）...")
-            try:
-                return client.models.generate_content(
-                    model=model_id,
-                    contents=prompt,
-                    config=types.GenerateContentConfig(
-                        system_instruction=SYSTEM_INSTRUCTION,
-                        response_mime_type="application/json",
-                        response_schema=DailyBriefing,
-                        temperature=0.3,
-                    ),
-                )
-            except Exception as exc:
-                last_error = exc
-                err_msg = str(exc)
-                is_not_found = "404" in err_msg or "NOT_FOUND" in err_msg
-                is_transient = any(
-                    code in err_msg
-                    for code in ("503", "UNAVAILABLE", "429", "RESOURCE_EXHAUSTED", "500", "INTERNAL")
-                )
-                if is_not_found:
-                    print(f"[警告] 模型 {model_id} 不可用，嘗試下一個備援模型...", file=sys.stderr)
-                    return None
-                if is_transient and attempt < max_attempts_per_model:
-                    wait_seconds = 5 * attempt
-                    print(
-                        f"[警告] {model_id} 暫時忙碌（{exc}），將於 {wait_seconds} 秒後重試...",
-                        file=sys.stderr,
-                    )
-                    time.sleep(wait_seconds)
-                    continue
-                if is_transient:
-                    print(f"[警告] {model_id} 持續忙碌，嘗試切換至下一個備援模型...", file=sys.stderr)
-                    return None
-                raise
-        return None
-
-    for model_id in candidate_models:
-        response = try_model(model_id)
-        if response is not None:
-            break
-
-    if response is None:
-        extra_models = discover_fallback_models(client, tried_models)
-        if extra_models:
-            print(f"[資訊] 偵測到其他可用備援模型：{', '.join(extra_models)}")
-            for model_id in extra_models:
-                response = try_model(model_id)
-                if response is not None:
-                    break
-
-    if response is None:
-        raise RuntimeError(f"所有候選模型均無法完成請求，最後錯誤：{last_error}")
-
-    if response.parsed is not None and isinstance(response.parsed, DailyBriefing):
-        return response.parsed
-
-    if not response.text:
-        raise RuntimeError("Gemini 回傳空內容，無法解析結構化新聞簡報。")
-
-    return DailyBriefing.model_validate_json(response.text)
 
 
 def load_archive(path: Path) -> list[dict[str, Any]]:
@@ -457,6 +485,343 @@ def load_archive(path: Path) -> list[dict[str, Any]]:
         return []
 
 
+def get_history_before(effective_date: str) -> list[tuple[str, str]]:
+    """取得嚴格早於 effective_date、最多 60 天內的歷史存檔（日期, 標題）清單。"""
+    archive = load_archive(ARCHIVE_PATH)
+    prior_days = [
+        entry
+        for entry in archive
+        if isinstance(entry, dict)
+        and isinstance(entry.get("date"), str)
+        and entry["date"] < effective_date
+    ]
+    prior_days.sort(key=lambda e: e["date"], reverse=True)
+    prior_days = prior_days[:MAX_ARCHIVE_DAYS]
+
+    history: list[tuple[str, str]] = []
+    for day in prior_days:
+        day_date = day["date"]
+        for item in day.get("items") or []:
+            if isinstance(item, dict) and item.get("title"):
+                history.append((day_date, str(item["title"]).strip()))
+    return history
+
+
+def sanitize_related_history(
+    related_list: list[RelatedNews],
+    valid_history: list[tuple[str, str]],
+) -> list[RelatedNews]:
+    """嚴格驗證模型回傳的相關舊聞是否真實存在於歷史存檔，並正規化為精確標題。"""
+    if not related_list or not valid_history:
+        return []
+
+    by_date: dict[str, list[str]] = {}
+    for d, t in valid_history:
+        by_date.setdefault(d, []).append(t)
+
+    cleaned: list[RelatedNews] = []
+    seen_pairs: set[tuple[str, str]] = set()
+
+    for rel in related_list:
+        d = rel.date.strip()
+        t = rel.title.strip()
+        titles_on_date = by_date.get(d)
+        if not titles_on_date:
+            continue
+
+        matched_title: str | None = None
+        if t in titles_on_date:
+            matched_title = t
+        else:
+            # 若標點或空白略有差異，嘗試子字串安全比對
+            for cand in titles_on_date:
+                if (len(t) >= 10 and t in cand) or (len(cand) >= 10 and cand in t):
+                    matched_title = cand
+                    break
+
+        if matched_title is None:
+            continue
+        pair = (d, matched_title)
+        if pair in seen_pairs:
+            continue
+        seen_pairs.add(pair)
+        cleaned.append(
+            RelatedNews(date=d, title=matched_title, relation=rel.relation.strip())
+        )
+        if len(cleaned) >= 2:
+            break
+
+    return cleaned
+
+
+def build_prompt(
+    articles: list[dict[str, Any]],
+    effective_date: str,
+    history: list[tuple[str, str]],
+) -> str:
+    """組合提供給 Gemini 模型的候選新聞與 60 天歷史存檔提示詞。"""
+    lines = [
+        f"簡報日期（台灣時間）：{effective_date}",
+        f"以下為該日期區間內從國內外科技媒體抓取的 {len(articles)} 則 AI 相關候選新聞：",
+        "",
+    ]
+    for idx, art in enumerate(articles, start=1):
+        published_tw = art["published_utc"].astimezone(TAIWAN_TZ).strftime("%Y-%m-%d %H:%M")
+        lines.append(f"[{idx}] 來源：{art['source']} | 發布時間：{published_tw}")
+        lines.append(f"標題：{art['title']}")
+        lines.append(f"網址：{art['url']}")
+        if art["summary"]:
+            lines.append(f"摘要：{art['summary']}")
+        lines.append("")
+
+    if history:
+        lines.append(
+            f"=== 過去最多 {MAX_ARCHIVE_DAYS} 天歷史存檔清單（共 {len(history)} 則，供去重與建立 related_history 脈絡連結用）==="
+        )
+        for h_date, h_title in history:
+            lines.append(f"- [{h_date}] {h_title}")
+        lines.append("")
+
+    target_count = "7 至 10 則" if len(articles) >= 7 else f"{len(articles)} 則"
+    lines.append(
+        f"請從上述候選新聞中精選 {target_count} 最重要的 AI 新聞，整理為結構化的台灣繁體中文每日簡報。"
+        "若與上述歷史存檔清單中的前期新聞有明確延續關係或脈絡關聯，請在 `related_history` 標註最多 2 筆（date 與 title 須完全照抄清單）；無明確關聯請留空陣列 `[]`。"
+    )
+    return "\n".join(lines)
+
+
+def discover_fallback_models(client: genai.Client, already_tried: set[str]) -> list[str]:
+    """向 Gemini API 查詢此帳號目前支援 generateContent 的其他文字模型作為動態備援。"""
+    discovered: list[str] = []
+    excluded_keywords = (
+        "embedding",
+        "imagen",
+        "veo",
+        "tts",
+        "audio",
+        "image",
+        "robotics",
+        "computer-use",
+        "live",
+        "2.5-",
+    )
+    try:
+        for model in client.models.list():
+            name = (getattr(model, "name", "") or "").removeprefix("models/")
+            actions = getattr(model, "supported_actions", None) or []
+            if not name.startswith("gemini-") or name in already_tried:
+                continue
+            if any(kw in name.lower() for kw in excluded_keywords):
+                continue
+            if actions and "generateContent" not in actions:
+                continue
+            discovered.append(name)
+    except Exception as exc:
+        print(f"[警告] 查詢可用模型清單失敗：{exc}", file=sys.stderr)
+        return []
+
+    discovered.sort(key=lambda m: (0 if "flash" in m else 1, m))
+    return discovered[:5]
+
+
+def generate_structured_with_fallback(
+    client: genai.Client,
+    prompt: str,
+    schema: type[BaseModel],
+    system_instruction: str,
+) -> Any:
+    """呼叫 Gemini 結構化輸出（自動重試、記住可用模型並切換備援模型）。"""
+    global _LAST_WORKING_MODEL
+
+    candidate_models: list[str] = []
+    for m in [_LAST_WORKING_MODEL, MODEL_NAME, *DEFAULT_MODELS]:
+        if m and m not in candidate_models:
+            candidate_models.append(m)
+
+    max_attempts_per_model = 2
+    last_error: Exception | None = None
+    tried_models: set[str] = set()
+
+    def try_model(model_id: str) -> Any | None:
+        nonlocal last_error
+        tried_models.add(model_id)
+        for attempt in range(1, max_attempts_per_model + 1):
+            print(f"正在呼叫 {model_id}（第 {attempt}/{max_attempts_per_model} 次）...")
+            try:
+                resp = client.models.generate_content(
+                    model=model_id,
+                    contents=prompt,
+                    config=types.GenerateContentConfig(
+                        system_instruction=system_instruction,
+                        response_mime_type="application/json",
+                        response_schema=schema,
+                        temperature=0.3,
+                    ),
+                )
+                return resp
+            except Exception as exc:
+                last_error = exc
+                err_msg = str(exc)
+                is_not_found = "404" in err_msg or "NOT_FOUND" in err_msg
+                is_transient = any(
+                    code in err_msg
+                    for code in (
+                        "503",
+                        "UNAVAILABLE",
+                        "429",
+                        "RESOURCE_EXHAUSTED",
+                        "500",
+                        "INTERNAL",
+                        "DEADLINE_EXCEEDED",
+                        "timeout",
+                        "Timeout",
+                    )
+                )
+                if is_not_found:
+                    print(f"[警告] 模型 {model_id} 不可用，切換下一個備援模型...", file=sys.stderr)
+                    return None
+                if is_transient and attempt < max_attempts_per_model:
+                    wait_seconds = 4 * attempt
+                    print(
+                        f"[警告] {model_id} 暫時忙碌，將於 {wait_seconds} 秒後重試...",
+                        file=sys.stderr,
+                    )
+                    time.sleep(wait_seconds)
+                    continue
+                if is_transient:
+                    print(f"[警告] {model_id} 持續忙碌，切換至下一個備援模型...", file=sys.stderr)
+                    return None
+                raise
+        return None
+
+    response = None
+    for model_id in candidate_models:
+        response = try_model(model_id)
+        if response is not None:
+            _LAST_WORKING_MODEL = model_id
+            break
+
+    if response is None:
+        extra_models = discover_fallback_models(client, tried_models)
+        if extra_models:
+            print(f"[資訊] 偵測到其他可用備援模型：{', '.join(extra_models)}")
+            for model_id in extra_models:
+                response = try_model(model_id)
+                if response is not None:
+                    _LAST_WORKING_MODEL = model_id
+                    break
+
+    if response is None:
+        raise RuntimeError(f"所有候選模型均無法完成請求，最後錯誤：{last_error}")
+
+    if response.parsed is not None and isinstance(response.parsed, schema):
+        return response.parsed
+
+    if not response.text:
+        raise RuntimeError("Gemini 回傳空內容，無法解析結構化結果。")
+
+    return schema.model_validate_json(response.text)
+
+
+def create_gemini_client() -> genai.Client:
+    """建立附帶合理逾時設定的 Gemini API 用戶端。"""
+    api_key = os.environ.get("GEMINI_API_KEY", "").strip()
+    if not api_key:
+        raise RuntimeError(
+            "找不到環境變數 GEMINI_API_KEY。請先設定您的 Gemini API 金鑰後再執行，例如：\n"
+            '  PowerShell: $env:GEMINI_API_KEY="您的金鑰"\n'
+            '  Bash/Zsh:   export GEMINI_API_KEY="您的金鑰"'
+        )
+    return genai.Client(
+        api_key=api_key,
+        http_options=types.HttpOptions(timeout=GEMINI_TIMEOUT_MS),
+    )
+
+
+def curate_news_with_gemini(
+    client: genai.Client,
+    articles: list[dict[str, Any]],
+    effective_date: str,
+    history: list[tuple[str, str]],
+) -> DailyBriefing:
+    """呼叫 Gemini 精選 7～10 則繁體中文新聞並驗證 60 天相關舊聞連結。"""
+    prompt = build_prompt(articles, effective_date, history)
+    briefing: DailyBriefing = generate_structured_with_fallback(
+        client=client,
+        prompt=prompt,
+        schema=DailyBriefing,
+        system_instruction=SYSTEM_INSTRUCTION,
+    )
+    for item in briefing.items:
+        item.related_history = sanitize_related_history(item.related_history, history)
+    return briefing
+
+
+def relink_existing_date(client: genai.Client, target_date_str: str) -> int:
+    """為 archive.json 中已存在的特定日期補齊 60 天相關舊聞脈絡（保留原有新聞內容）。"""
+    archive = load_archive(ARCHIVE_PATH)
+    target_day = next(
+        (d for d in archive if isinstance(d, dict) and d.get("date") == target_date_str),
+        None,
+    )
+    if target_day is None:
+        print(f"[警告] archive.json 中找不到日期 {target_date_str}，略過關聯補齊。")
+        return 0
+
+    items = target_day.get("items") or []
+    history = get_history_before(target_date_str)
+    if not items or not history:
+        print(f"[資訊] {target_date_str} 無項目或無前期歷史存檔，略過。")
+        return 0
+
+    lines = [
+        f"請檢視以下 {target_date_str} 的 {len(items)} 則 AI 新聞，並與過去最多 {MAX_ARCHIVE_DAYS} 天的歷史存檔清單比對，找出高度相關的前期報導（每則最多 2 筆，無明確延續關係請回傳 []）。",
+        "",
+        f"=== {target_date_str} 當日新聞 ===",
+    ]
+    for idx, item in enumerate(items, start=1):
+        lines.append(f"[{idx}] 標題：{item.get('title', '')}")
+        bullets = item.get("bullets") or []
+        if bullets:
+            lines.append(f"重點：{'；'.join(str(b) for b in bullets[:2])}")
+    lines.append("")
+    lines.append(f"=== 早於 {target_date_str} 的歷史存檔清單（共 {len(history)} 則）===")
+    for h_date, h_title in history:
+        lines.append(f"- [{h_date}] {h_title}")
+
+    system_msg = (
+        "你是一位資深的台灣科技總編輯，負責為當日 AI 新聞標記過去 60 天內高度相關的前期報導脈絡。"
+        "請只挑選具有明確延續關係、因果脈絡、同事件進展或同公司／模型競爭演變的前期報導；"
+        "date 與 title 必須完全逐字照抄輸入的歷史存檔清單，不可捏造；沒有明確關聯請回傳空陣列 []。"
+    )
+
+    print(f"=== 為既有日期 {target_date_str} 補齊 60 天相關舊聞脈絡（歷史清單 {len(history)} 則） ===")
+    result: RelinkResult = generate_structured_with_fallback(
+        client=client,
+        prompt="\n".join(lines),
+        schema=RelinkResult,
+        system_instruction=system_msg,
+    )
+
+    rel_by_idx = {
+        entry.index: sanitize_related_history(entry.related_history, history)
+        for entry in result.entries
+    }
+    linked_count = 0
+    for idx, item in enumerate(items, start=1):
+        cleaned = rel_by_idx.get(idx, [])
+        item["related_history"] = [r.model_dump(mode="json") for r in cleaned]
+        if cleaned:
+            linked_count += 1
+
+    ARCHIVE_PATH.write_text(
+        json.dumps(archive, ensure_ascii=False, indent=2) + "\n",
+        encoding="utf-8",
+    )
+    print(f"完成！已為 {target_date_str} 中的 {linked_count}/{len(items)} 則新聞建立前情提要脈絡。")
+    return 0
+
+
 def update_archive(
     briefing: DailyBriefing,
     now_tw: datetime,
@@ -466,8 +831,9 @@ def update_archive(
     date_str = target_date_str or now_tw.strftime("%Y-%m-%d")
     archive = load_archive(ARCHIVE_PATH)
 
-    # 移除同日期（YYYY-MM-DD）的舊資料
-    filtered = [entry for entry in archive if isinstance(entry, dict) and entry.get("date") != date_str]
+    filtered = [
+        entry for entry in archive if isinstance(entry, dict) and entry.get("date") != date_str
+    ]
 
     record: dict[str, Any] = {
         "date": date_str,
@@ -498,24 +864,54 @@ def get_existing_urls_except(target_date_str: str) -> set[str]:
     return urls
 
 
-def process_single_date(target_date_str: str | None = None) -> int:
+def expand_date_spec(spec: str) -> list[str]:
+    """解析日期清單（支援逗號分隔與 YYYY-MM-DD..YYYY-MM-DD 區間語法，由舊到新排序）。"""
+    dates: list[str] = []
+    for part in spec.split(","):
+        token = part.strip()
+        if not token:
+            continue
+        if ".." in token:
+            start_s, end_s = [x.strip() for x in token.split("..", 1)]
+            cur = datetime.strptime(start_s, "%Y-%m-%d")
+            end = datetime.strptime(end_s, "%Y-%m-%d")
+            step = 1 if cur <= end else -1
+            while True:
+                dates.append(cur.strftime("%Y-%m-%d"))
+                if cur == end:
+                    break
+                cur += timedelta(days=step)
+        else:
+            datetime.strptime(token, "%Y-%m-%d")
+            dates.append(token)
+    # 去重並維持原順序
+    return list(dict.fromkeys(dates))
+
+
+def process_single_date(
+    client: genai.Client,
+    target_date_str: str | None = None,
+    pooled_articles: list[dict[str, Any]] | None = None,
+) -> int:
     """抓取並更新單一日期（未指定時抓取過去 28 小時並記為台灣今日）。"""
     now_tw = datetime.now(TAIWAN_TZ)
 
     if target_date_str:
-        try:
-            day_start_tw = datetime.strptime(target_date_str, "%Y-%m-%d").replace(tzinfo=TAIWAN_TZ)
-        except ValueError:
-            print(f"[錯誤] 日期格式不正確（請使用 YYYY-MM-DD）：{target_date_str}", file=sys.stderr)
-            return 1
+        day_start_tw = datetime.strptime(target_date_str, "%Y-%m-%d").replace(tzinfo=TAIWAN_TZ)
         day_end_tw = day_start_tw + timedelta(days=1) - timedelta(seconds=1)
+        start_utc = day_start_tw.astimezone(timezone.utc)
+        end_utc = day_end_tw.astimezone(timezone.utc)
+
         print(f"=== 每日 AI 新聞簡報回補（目標台灣日期：{target_date_str}） ===")
         exclude_urls = get_existing_urls_except(target_date_str)
-        articles = fetch_recent_articles(
-            start_utc=day_start_tw.astimezone(timezone.utc),
-            end_utc=day_end_tw.astimezone(timezone.utc),
-            exclude_urls=exclude_urls,
-        )
+        if pooled_articles is not None:
+            day_items = [
+                art for art in pooled_articles if start_utc <= art["published_utc"] <= end_utc
+            ]
+            articles = finalize_candidates(day_items, exclude_urls)
+            print(f"從歷史文章池篩出 {len(articles)} 則候選新聞。")
+        else:
+            articles = fetch_recent_articles(start_utc, end_utc, exclude_urls=exclude_urls)
         effective_date = target_date_str
     else:
         effective_date = now_tw.strftime("%Y-%m-%d")
@@ -523,19 +919,24 @@ def process_single_date(target_date_str: str | None = None) -> int:
         articles = fetch_recent_articles()
 
     if not articles:
-        print(f"[錯誤] 日期 {effective_date} 未抓取到任何 RSS 文章，請檢查網路連線或 RSS 存量。", file=sys.stderr)
+        print(f"[警告] 日期 {effective_date} 未抓取到任何 RSS 文章，略過。", file=sys.stderr)
         return 1
+
+    history = get_history_before(effective_date)
+    if history:
+        print(f"已載入過去最多 {MAX_ARCHIVE_DAYS} 天歷史存檔共 {len(history)} 則標題供脈絡比對。")
 
     try:
-        briefing = curate_news_with_gemini(articles, effective_date)
+        briefing = curate_news_with_gemini(client, articles, effective_date, history)
     except Exception as exc:
-        print(f"[錯誤] 呼叫 Gemini API 失敗：{exc}", file=sys.stderr)
+        print(f"[錯誤] 呼叫 Gemini API 失敗（{effective_date}）：{exc}", file=sys.stderr)
         return 1
 
+    linked_count = sum(1 for item in briefing.items if item.related_history)
     updated_archive = update_archive(briefing, now_tw, target_date_str=effective_date)
     print(
-        f"完成！已精選 {len(briefing.items)} 則新聞寫入 {ARCHIVE_PATH.name}（日期：{effective_date}），"
-        f"目前共保存 {len(updated_archive)} 天歷史紀錄。"
+        f"完成！已精選 {len(briefing.items)} 則新聞（其中 {linked_count} 則附帶前情提要脈絡）"
+        f"寫入 {ARCHIVE_PATH.name}（日期：{effective_date}），目前共保存 {len(updated_archive)} 天歷史紀錄。"
     )
     return 0
 
@@ -548,20 +949,44 @@ def main() -> int:
         "--dates",
         type=str,
         default="",
-        help="選填：指定要回補的台灣日期（YYYY-MM-DD，多日請用逗號分隔）",
+        help="選填：指定要回補的台灣日期（支援逗號分隔或 YYYY-MM-DD..YYYY-MM-DD 區間）",
+    )
+    parser.add_argument(
+        "--relink-dates",
+        type=str,
+        default="",
+        help="選填：僅為 archive.json 中已存在的日期補齊 60 天相關舊聞脈絡",
     )
     args = parser.parse_args()
 
+    try:
+        client = create_gemini_client()
+    except Exception as exc:
+        print(f"[錯誤] {exc}", file=sys.stderr)
+        return 1
+
     raw_dates = args.dates.strip() or os.environ.get("TARGET_DATES", "").strip()
+    raw_relink = args.relink_dates.strip() or os.environ.get("RELINK_DATES", "").strip()
+
     if raw_dates:
-        date_list = [d.strip() for d in raw_dates.split(",") if d.strip()]
+        date_list = expand_date_spec(raw_dates)
+        pooled = fetch_historical_pool(date_list)
         for d in date_list:
-            code = process_single_date(d)
+            code = process_single_date(client, target_date_str=d, pooled_articles=pooled)
             if code != 0:
                 return code
+
+    if raw_relink:
+        relink_list = expand_date_spec(raw_relink)
+        for d in relink_list:
+            code = relink_existing_date(client, d)
+            if code != 0:
+                return code
+
+    if raw_dates or raw_relink:
         return 0
 
-    return process_single_date(None)
+    return process_single_date(client, target_date_str=None)
 
 
 if __name__ == "__main__":

@@ -488,6 +488,189 @@
       margin-bottom: 4px;
     }
 
+    /* 相關舊聞脈絡區塊 */
+    .related-section {
+      background: var(--bg-subtle);
+      border: 1px solid var(--border);
+      border-radius: 12px;
+      padding: 11px 12px;
+      display: flex;
+      flex-direction: column;
+      gap: 8px;
+    }
+
+    .related-header {
+      display: flex;
+      align-items: center;
+      gap: 6px;
+      font-size: 0.75rem;
+      font-weight: 700;
+      color: var(--text-muted);
+      letter-spacing: 0.03em;
+    }
+
+    .related-list {
+      display: flex;
+      flex-direction: column;
+      gap: 6px;
+    }
+
+    .related-item-btn {
+      width: 100%;
+      text-align: left;
+      background: var(--surface);
+      border: 1px solid var(--border);
+      border-radius: 9px;
+      padding: 8px 10px;
+      font-family: inherit;
+      color: var(--text);
+      cursor: pointer;
+      display: flex;
+      align-items: flex-start;
+      justify-content: space-between;
+      gap: 10px;
+      transition: border-color 0.16s ease, background-color 0.16s ease, transform 0.14s ease;
+    }
+
+    .related-item-btn:hover {
+      border-color: var(--accent);
+      background: var(--surface-hover);
+      transform: translateX(2px);
+    }
+
+    .related-item-btn:disabled {
+      opacity: 0.65;
+      cursor: default;
+      transform: none;
+    }
+
+    .related-item-body {
+      display: flex;
+      flex-direction: column;
+      gap: 3px;
+      min-width: 0;
+    }
+
+    .related-item-top {
+      display: flex;
+      align-items: center;
+      gap: 6px;
+      flex-wrap: wrap;
+    }
+
+    .related-date-pill {
+      font-size: 0.72rem;
+      font-weight: 700;
+      color: var(--accent);
+      background: var(--accent-soft);
+      padding: 1px 7px;
+      border-radius: var(--radius-pill);
+      white-space: nowrap;
+    }
+
+    .related-title {
+      font-size: 0.83rem;
+      font-weight: 600;
+      color: var(--text);
+      line-height: 1.38;
+    }
+
+    .related-relation {
+      font-size: 0.78rem;
+      color: var(--text-muted);
+      line-height: 1.4;
+    }
+
+    .related-arrow {
+      flex-shrink: 0;
+      color: var(--accent);
+      margin-top: 2px;
+    }
+
+    /* 跳轉目標高亮動畫 */
+    @keyframes targetPulse {
+      0% {
+        box-shadow: 0 0 0 0 rgba(37, 99, 235, 0.55);
+        border-color: var(--accent);
+      }
+      40% {
+        box-shadow: 0 0 0 8px rgba(37, 99, 235, 0.18);
+        border-color: var(--accent);
+      }
+      100% {
+        box-shadow: var(--shadow-sm);
+        border-color: var(--border);
+      }
+    }
+
+    .news-card.highlight-target {
+      animation: targetPulse 2.4s ease-out;
+      border-color: var(--accent);
+    }
+
+    /* 跳轉前情提要返回列 */
+    .jump-banner {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      gap: 12px;
+      flex-wrap: wrap;
+      background: var(--accent-soft);
+      border: 1px solid color-mix(in srgb, var(--accent) 35%, transparent);
+      border-radius: var(--radius-md);
+      padding: 10px 14px;
+      margin-bottom: 18px;
+      font-size: 0.86rem;
+      color: var(--text);
+    }
+
+    .jump-banner[hidden] {
+      display: none;
+    }
+
+    .jump-banner-actions {
+      display: flex;
+      align-items: center;
+      gap: 8px;
+    }
+
+    .jump-back-btn {
+      display: inline-flex;
+      align-items: center;
+      gap: 5px;
+      border: 1px solid var(--accent);
+      background: var(--surface);
+      color: var(--accent);
+      font-family: inherit;
+      font-size: 0.82rem;
+      font-weight: 600;
+      padding: 5px 11px;
+      border-radius: 8px;
+      cursor: pointer;
+      transition: background-color 0.15s ease, color 0.15s ease;
+    }
+
+    .jump-back-btn:hover {
+      background: var(--accent);
+      color: #ffffff;
+    }
+
+    .jump-close-btn {
+      border: none;
+      background: transparent;
+      color: var(--text-muted);
+      font-size: 1rem;
+      line-height: 1;
+      padding: 4px 6px;
+      border-radius: 6px;
+      cursor: pointer;
+    }
+
+    .jump-close-btn:hover {
+      background: var(--surface);
+      color: var(--text);
+    }
+
     .card-footer {
       display: flex;
       align-items: center;
@@ -652,6 +835,14 @@
       </div>
     </section>
 
+    <section class="jump-banner" id="jumpBanner" hidden aria-live="polite">
+      <span id="jumpBannerText"></span>
+      <div class="jump-banner-actions">
+        <button id="jumpBackBtn" class="jump-back-btn" type="button">← 返回原日期</button>
+        <button id="jumpCloseBtn" class="jump-close-btn" type="button" aria-label="關閉提示">✕</button>
+      </div>
+    </section>
+
     <section class="filter-bar" id="filterBar" aria-label="新聞領域分類篩選" hidden></section>
 
     <section id="contentArea" aria-live="polite">
@@ -683,6 +874,7 @@
       archive: [],
       currentIndex: 0,
       selectedCategory: "ALL",
+      jumpStack: [],
     };
 
     const el = {
@@ -694,6 +886,10 @@
       dayHeader: document.getElementById("dayHeader"),
       dayTitle: document.getElementById("dayTitle"),
       dayMeta: document.getElementById("dayMeta"),
+      jumpBanner: document.getElementById("jumpBanner"),
+      jumpBannerText: document.getElementById("jumpBannerText"),
+      jumpBackBtn: document.getElementById("jumpBackBtn"),
+      jumpCloseBtn: document.getElementById("jumpCloseBtn"),
       filterBar: document.getElementById("filterBar"),
       contentArea: document.getElementById("contentArea"),
     };
@@ -838,13 +1034,71 @@
       el.filterBar.hidden = false;
     }
 
-    function renderCards(items) {
-      const visibleItems =
-        state.selectedCategory === "ALL"
-          ? items
-          : items.filter((item) => item.category === state.selectedCategory);
+    function renderRelatedSection(relatedList) {
+      if (!Array.isArray(relatedList) || relatedList.length === 0) {
+        return "";
+      }
 
-      if (visibleItems.length === 0) {
+      const itemsHtml = relatedList
+        .map((ref) => {
+          const refDate = String(ref.date || "").trim();
+          const refTitle = String(ref.title || "").trim();
+          const refRelation = String(ref.relation || "").trim();
+          if (!refDate || !refTitle) return "";
+
+          const targetExists = state.archive.some((d) => d.date === refDate);
+          return `
+            <button
+              type="button"
+              class="related-item-btn"
+              data-jump-date="${escapeHtml(refDate)}"
+              data-jump-title="${escapeHtml(refTitle)}"
+              ${targetExists ? "" : "disabled"}
+              title="${targetExists ? `跳轉查看 ${escapeHtml(refDate)} 的前情提要` : "此日期不在目前 60 天存檔中"}"
+            >
+              <div class="related-item-body">
+                <div class="related-item-top">
+                  <span class="related-date-pill">${escapeHtml(refDate)}</span>
+                  <span class="related-title">${escapeHtml(refTitle)}</span>
+                </div>
+                ${refRelation ? `<span class="related-relation">${escapeHtml(refRelation)}</span>` : ""}
+              </div>
+              ${
+                targetExists
+                  ? `<svg class="related-arrow" width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
+                      <line x1="5" y1="12" x2="19" y2="12"></line>
+                      <polyline points="12 5 19 12 12 19"></polyline>
+                    </svg>`
+                  : ""
+              }
+            </button>`;
+        })
+        .filter(Boolean)
+        .join("");
+
+      if (!itemsHtml) return "";
+
+      return `
+        <div class="related-section">
+          <div class="related-header">
+            <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
+              <circle cx="12" cy="12" r="10"></circle>
+              <polyline points="12 6 12 12 16 14"></polyline>
+            </svg>
+            <span>相關舊聞脈絡（點擊跳轉前情提要）</span>
+          </div>
+          <div class="related-list">${itemsHtml}</div>
+        </div>`;
+    }
+
+    function renderCards(items) {
+      const visibleEntries = items
+        .map((item, idx) => ({ item, idx }))
+        .filter(({ item }) =>
+          state.selectedCategory === "ALL" ? true : item.category === state.selectedCategory
+        );
+
+      if (visibleEntries.length === 0) {
         el.contentArea.innerHTML = `
           <div class="state-box">
             <h2>此分類當日無精選新聞</h2>
@@ -853,8 +1107,8 @@
         return;
       }
 
-      const cardsHtml = visibleItems
-        .map((item) => {
+      const cardsHtml = visibleEntries
+        .map(({ item, idx }) => {
           const catMeta = CATEGORY_MAP[item.category] || {
             cls: "cat-model",
             dot: "dot-model",
@@ -864,9 +1118,10 @@
             .map((point) => `<li>${escapeHtml(point)}</li>`)
             .join("");
           const safeHref = sanitizeUrl(item.url);
+          const relatedHtml = renderRelatedSection(item.related_history);
 
           return `
-            <article class="news-card">
+            <article class="news-card" data-item-idx="${idx}">
               <div class="card-meta">
                 <span class="category-badge ${catMeta.cls}">
                   <span class="dot" aria-hidden="true"></span>
@@ -886,6 +1141,8 @@
                 ${escapeHtml(item.analysis)}
               </blockquote>
 
+              ${relatedHtml}
+
               <div class="card-footer">
                 <a class="source-link" href="${escapeHtml(safeHref)}" target="_blank" rel="noopener noreferrer">
                   <span>閱讀原始報導</span>
@@ -901,6 +1158,78 @@
         .join("");
 
       el.contentArea.innerHTML = `<div class="news-grid">${cardsHtml}</div>`;
+    }
+
+    function updateJumpBanner() {
+      if (state.jumpStack.length === 0) {
+        el.jumpBanner.hidden = true;
+        return;
+      }
+      const prev = state.jumpStack[state.jumpStack.length - 1];
+      const currentDay = state.archive[state.currentIndex];
+      el.jumpBannerText.textContent = `已跳轉查看 ${formatDateLabel(currentDay?.date || "")} 的前情提要`;
+      el.jumpBackBtn.textContent = `← 返回 ${prev.date}`;
+      el.jumpBanner.hidden = false;
+    }
+
+    function scrollToAndHighlightCard(itemIdx) {
+      if (itemIdx < 0) return;
+      requestAnimationFrame(() => {
+        const card = el.contentArea.querySelector(`.news-card[data-item-idx="${itemIdx}"]`);
+        if (!card) return;
+        card.scrollIntoView({ behavior: "smooth", block: "center" });
+        card.classList.remove("highlight-target");
+        void card.offsetWidth;
+        card.classList.add("highlight-target");
+      });
+    }
+
+    function jumpToRelatedStory(targetDate, targetTitle) {
+      const targetIndex = state.archive.findIndex((d) => d.date === targetDate);
+      if (targetIndex === -1) return;
+
+      const currentDay = state.archive[state.currentIndex];
+      if (currentDay) {
+        state.jumpStack.push({
+          index: state.currentIndex,
+          date: currentDay.date,
+          category: state.selectedCategory,
+          scrollY: window.scrollY,
+        });
+      }
+
+      state.currentIndex = targetIndex;
+      state.selectedCategory = "ALL";
+      renderCurrentDay();
+      updateJumpBanner();
+
+      const targetItems = Array.isArray(state.archive[targetIndex].items)
+        ? state.archive[targetIndex].items
+        : [];
+      let matchIdx = targetItems.findIndex((it) => (it.title || "").trim() === targetTitle.trim());
+      if (matchIdx === -1) {
+        matchIdx = targetItems.findIndex(
+          (it) =>
+            (it.title || "").includes(targetTitle.slice(0, 12)) ||
+            targetTitle.includes((it.title || "").slice(0, 12))
+        );
+      }
+      scrollToAndHighlightCard(matchIdx);
+    }
+
+    function returnFromJump() {
+      const prev = state.jumpStack.pop();
+      if (!prev) {
+        updateJumpBanner();
+        return;
+      }
+      state.currentIndex = prev.index;
+      state.selectedCategory = prev.category || "ALL";
+      renderCurrentDay();
+      updateJumpBanner();
+      requestAnimationFrame(() => {
+        window.scrollTo({ top: prev.scrollY || 0, behavior: "smooth" });
+      });
     }
 
     function renderCurrentDay() {
@@ -933,9 +1262,11 @@
 
     function switchDay(nextIndex) {
       if (nextIndex < 0 || nextIndex >= state.archive.length) return;
+      state.jumpStack = [];
       state.currentIndex = nextIndex;
       state.selectedCategory = "ALL";
       renderCurrentDay();
+      updateJumpBanner();
       window.scrollTo({ top: 0, behavior: "smooth" });
     }
 
@@ -961,6 +1292,25 @@
         const items = day && Array.isArray(day.items) ? day.items : [];
         renderFilterBar(items);
         renderCards(items);
+      });
+
+      el.contentArea.addEventListener("click", (event) => {
+        const relatedBtn = event.target.closest(".related-item-btn");
+        if (!relatedBtn || relatedBtn.disabled) return;
+        const targetDate = relatedBtn.dataset.jumpDate;
+        const targetTitle = relatedBtn.dataset.jumpTitle;
+        if (targetDate && targetTitle) {
+          jumpToRelatedStory(targetDate, targetTitle);
+        }
+      });
+
+      el.jumpBackBtn.addEventListener("click", () => {
+        returnFromJump();
+      });
+
+      el.jumpCloseBtn.addEventListener("click", () => {
+        state.jumpStack = [];
+        updateJumpBanner();
       });
     }
 

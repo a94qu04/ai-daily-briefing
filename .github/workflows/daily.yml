@@ -7,7 +7,11 @@ on:
   workflow_dispatch:
     inputs:
       target_dates:
-        description: "選填：指定要回補的台灣日期（YYYY-MM-DD，多日以逗號分隔，留空則抓取今日）"
+        description: "選填：指定要回補的台灣日期（支援逗號分隔或 YYYY-MM-DD..YYYY-MM-DD 區間，留空則抓取今日）"
+        required: false
+        default: ""
+      relink_dates:
+        description: "選填：為既有的 archive.json 日期補齊 60 天相關舊聞脈絡（逗號分隔或區間）"
         required: false
         default: ""
 
@@ -36,9 +40,11 @@ jobs:
         env:
           GEMINI_API_KEY: ${{ secrets.GEMINI_API_KEY }}
           TARGET_DATES: ${{ inputs.target_dates }}
+          RELINK_DATES: ${{ inputs.relink_dates }}
         run: python fetch_news.py
 
       - name: Commit and push updated archive.json
+        if: always()
         run: |
           git config user.name "github-actions[bot]"
           git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
