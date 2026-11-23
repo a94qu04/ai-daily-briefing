@@ -67,7 +67,7 @@ LOOKBACK_HOURS = 28
 MAX_ARCHIVE_DAYS = 60
 MAX_CANDIDATE_ARTICLES = 80
 HTTP_TIMEOUT_SECONDS = 20
-MODEL_NAME = "gemini-2.5-flash"
+MODEL_NAME = os.environ.get("GEMINI_MODEL", "gemini-3.8-flash")
 
 BASE_DIR = Path(__file__).resolve().parent
 ARCHIVE_PATH = BASE_DIR / "archive.json"
