@@ -95,8 +95,9 @@ HISTORICAL_GNEWS_SITES: list[dict[str, str]] = [
 LOOKBACK_HOURS = 28
 MAX_ARCHIVE_DAYS = 60
 MAX_CANDIDATE_ARTICLES = 80
+MAX_CANDIDATES_PER_DAY_IN_BATCH = 24
 HTTP_TIMEOUT_SECONDS = 20
-GEMINI_TIMEOUT_MS = 90_000
+GEMINI_TIMEOUT_MS = 180_000
 
 DEFAULT_MODELS = [
     "gemini-3.5-flash",
@@ -184,19 +185,41 @@ class DailyBriefing(BaseModel):
     )
 
 
+class DayBriefingEntry(BaseModel):
+    """多日合併批次中單一日期的簡報結構。"""
+
+    date: str = Field(
+        description="該日簡報的台灣日期（YYYY-MM-DD），必須與輸入提供的目標日期完全一致。"
+    )
+    items: list[NewsItem] = Field(
+        min_length=1,
+        max_length=10,
+        description="該日精選的 7 至 10 則最重要的 AI 新聞（若該日候選新聞不足 7 則，則依實際數量整理）。",
+    )
+
+
+class MultiDayBriefing(BaseModel):
+    """單次 API 呼叫同時整理多個日期的 AI 簡報輸出。"""
+
+    days: list[DayBriefingEntry] = Field(
+        description="依輸入的目標日期順序（由舊到新）逐日回傳精選簡報。"
+    )
+
+
 class RelinkEntry(BaseModel):
     """單則既有新聞的相關舊聞回填結果。"""
 
-    index: int = Field(description="該則新聞在輸入清單中的 1-based 編號。")
+    date: str = Field(description="該則既有新聞所屬日期（YYYY-MM-DD）。")
+    index: int = Field(description="該則新聞在該日期清單中的 1-based 編號。")
     related_history: list[RelatedNews] = Field(
         default_factory=list,
         max_length=2,
-        description="最多 2 筆與本則新聞高度相關的前期歷史報導（僅限從提供的 60 天歷史清單挑選，無關聯則為 []）。",
+        description="最多 2 筆與本則新聞高度相關的前期歷史報導（僅限嚴格早於該日且來自歷史清單的報導，無關聯則為 []）。",
     )
 
 
 class RelinkResult(BaseModel):
-    """批次為既有新聞補齊相關舊聞脈絡的輸出格式。"""
+    """批次為多個既有日期補齊相關舊聞脈絡的輸出格式。"""
 
     entries: list[RelinkEntry]
 
@@ -589,38 +612,42 @@ def build_prompt(
     return "\n".join(lines)
 
 
-def discover_fallback_models(client: genai.Client, already_tried: set[str]) -> list[str]:
-    """向 Gemini API 查詢此帳號目前支援 generateContent 的其他文字模型作為動態備援。"""
-    discovered: list[str] = []
-    excluded_keywords = (
-        "embedding",
-        "imagen",
-        "veo",
-        "tts",
-        "audio",
-        "image",
-        "robotics",
-        "computer-use",
-        "live",
-        "2.5-",
-    )
-    try:
-        for model in client.models.list():
-            name = (getattr(model, "name", "") or "").removeprefix("models/")
-            actions = getattr(model, "supported_actions", None) or []
-            if not name.startswith("gemini-") or name in already_tried:
-                continue
-            if any(kw in name.lower() for kw in excluded_keywords):
-                continue
-            if actions and "generateContent" not in actions:
-                continue
-            discovered.append(name)
-    except Exception as exc:
-        print(f"[警告] 查詢可用模型清單失敗：{exc}", file=sys.stderr)
-        return []
+def build_multi_day_prompt(
+    day_articles: list[tuple[str, list[dict[str, Any]]]],
+    history: list[tuple[str, str]],
+) -> str:
+    """組合單次呼叫處理多個連續日期的精簡提示詞，大幅節省 API 請求次數。"""
+    date_range = f"{day_articles[0][0]} ~ {day_articles[-1][0]}"
+    lines = [
+        f"請一次為以下 {len(day_articles)} 個日期（{date_range}）分別整理「每日 AI 簡報」，並依日期由舊到新回傳。",
+        "每個日期請精選 **7 至 10 則**最重要的 AI 新聞（若該日候選新聞不足 7 則，則依實際重要新聞整理）。",
+        "請確保不同日期之間避免重複收錄沒有新進展的同一則事件；若後續日期的新聞與前面日期或歷史存檔有明確延續關係，請在 `related_history` 標註最多 2 筆嚴格早於該日期的相關報導（`date` 與 `title` 須精確一致）。",
+        "",
+    ]
 
-    discovered.sort(key=lambda m: (0 if "flash" in m else 1, m))
-    return discovered[:5]
+    if history:
+        lines.append(
+            f"=== 早於 {day_articles[0][0]} 的歷史存檔標題清單（共 {len(history)} 則，供去重與建立 related_history 用）==="
+        )
+        for h_date, h_title in history:
+            lines.append(f"- [{h_date}] {h_title}")
+        lines.append("")
+
+    for d_str, arts in day_articles:
+        lines.append(f"================ 目標日期：{d_str}（候選 {len(arts)} 則）================")
+        for idx, art in enumerate(arts, start=1):
+            published_tw = art["published_utc"].astimezone(TAIWAN_TZ).strftime("%H:%M")
+            lines.append(f"[{idx}] {art['source']} ({published_tw}) | {art['title']}")
+            lines.append(f"URL: {art['url']}")
+            if art["summary"]:
+                short_sum = art["summary"][:200].rstrip()
+                lines.append(f"摘要：{short_sum}")
+        lines.append("")
+
+    lines.append(
+        "請務必為上述每一個目標日期都輸出一筆對應的 `days` 項目，且 `date` 與目標日期完全相同。"
+    )
+    return "\n".join(lines)
 
 
 def generate_structured_with_fallback(
@@ -657,6 +684,7 @@ def generate_structured_with_fallback(
                         response_mime_type="application/json",
                         response_schema=schema,
                         temperature=0.3,
+                        max_output_tokens=32768,
                     ),
                 )
                 _LAST_WORKING_MODEL = model_id
@@ -757,45 +785,57 @@ def curate_news_with_gemini(
     return briefing
 
 
-def relink_existing_date(client: genai.Client, target_date_str: str) -> int:
-    """為 archive.json 中已存在的特定日期補齊 60 天相關舊聞脈絡（保留原有新聞內容）。"""
+def relink_existing_dates_batch(client: genai.Client, target_dates: list[str]) -> int:
+    """以單次 API 呼叫為多個既有的 archive.json 日期一次補齊 60 天相關舊聞脈絡。"""
     archive = load_archive(ARCHIVE_PATH)
-    target_day = next(
-        (d for d in archive if isinstance(d, dict) and d.get("date") == target_date_str),
-        None,
-    )
-    if target_day is None:
-        print(f"[警告] archive.json 中找不到日期 {target_date_str}，略過關聯補齊。")
+    by_date = {
+        entry["date"]: entry
+        for entry in archive
+        if isinstance(entry, dict) and isinstance(entry.get("date"), str)
+    }
+
+    valid_targets = [d for d in sorted(target_dates) if d in by_date and (by_date[d].get("items") or [])]
+    if not valid_targets:
+        print("[資訊] 沒有符合條件的既有日期需要補齊相關舊聞脈絡。")
         return 0
 
-    items = target_day.get("items") or []
-    history = get_history_before(target_date_str)
-    if not items or not history:
-        print(f"[資訊] {target_date_str} 無項目或無前期歷史存檔，略過。")
+    # 收集涵蓋所有目標日期前期的 60 天歷史標題清單
+    max_target = max(valid_targets)
+    full_history = get_history_before(max_target)
+    if not full_history:
+        print("[資訊] 尚無前期歷史存檔可供關聯比對，略過。")
         return 0
 
     lines = [
-        f"請檢視以下 {target_date_str} 的 {len(items)} 則 AI 新聞，並與過去最多 {MAX_ARCHIVE_DAYS} 天的歷史存檔清單比對，找出高度相關的前期報導（每則最多 2 筆，無明確延續關係請回傳 []）。",
+        f"請一次為以下 {len(valid_targets)} 個既有日期的新聞，比對「歷史存檔清單」並找出高度相關的前期報導。",
+        "規則：每則新聞最多標註 2 筆高度相關且日期「嚴格早於該新聞日期」的前期報導；`date` 與 `title` 必須完全逐字照抄歷史清單，不可捏造；若無明確延續關係請回傳空陣列 `[]`。",
         "",
-        f"=== {target_date_str} 當日新聞 ===",
     ]
-    for idx, item in enumerate(items, start=1):
-        lines.append(f"[{idx}] 標題：{item.get('title', '')}")
-        bullets = item.get("bullets") or []
-        if bullets:
-            lines.append(f"重點：{'；'.join(str(b) for b in bullets[:2])}")
-    lines.append("")
-    lines.append(f"=== 早於 {target_date_str} 的歷史存檔清單（共 {len(history)} 則）===")
-    for h_date, h_title in history:
+
+    for d_str in valid_targets:
+        items = by_date[d_str].get("items") or []
+        lines.append(f"=== 待補齊日期：{d_str}（共 {len(items)} 則）===")
+        for idx, item in enumerate(items, start=1):
+            lines.append(f"[{d_str} #{idx}] 標題：{item.get('title', '')}")
+            bullets = item.get("bullets") or []
+            if bullets:
+                lines.append(f"重點：{'；'.join(str(b) for b in bullets[:2])}")
+        lines.append("")
+
+    lines.append(f"=== 可參照的歷史存檔清單（共 {len(full_history)} 則）===")
+    for h_date, h_title in full_history:
         lines.append(f"- [{h_date}] {h_title}")
 
     system_msg = (
-        "你是一位資深的台灣科技總編輯，負責為當日 AI 新聞標記過去 60 天內高度相關的前期報導脈絡。"
-        "請只挑選具有明確延續關係、因果脈絡、同事件進展或同公司／模型競爭演變的前期報導；"
+        "你是一位資深的台灣科技總編輯，負責為指定日期的既有 AI 新聞標記過去 60 天內高度相關的前期報導脈絡。"
+        "請只挑選具有明確延續關係、因果脈絡、同事件進展或同公司／模型競爭演變且日期嚴格早於該新聞的前期報導；"
         "date 與 title 必須完全逐字照抄輸入的歷史存檔清單，不可捏造；沒有明確關聯請回傳空陣列 []。"
     )
 
-    print(f"=== 為既有日期 {target_date_str} 補齊 60 天相關舊聞脈絡（歷史清單 {len(history)} 則） ===")
+    print(
+        f"=== 單次批次補齊 {len(valid_targets)} 個日期的 60 天相關舊聞脈絡"
+        f"（{', '.join(valid_targets)}，歷史清單 {len(full_history)} 則） ==="
+    )
     result: RelinkResult = generate_structured_with_fallback(
         client=client,
         prompt="\n".join(lines),
@@ -803,22 +843,107 @@ def relink_existing_date(client: genai.Client, target_date_str: str) -> int:
         system_instruction=system_msg,
     )
 
-    rel_by_idx = {
-        entry.index: sanitize_related_history(entry.related_history, history)
-        for entry in result.entries
-    }
-    linked_count = 0
-    for idx, item in enumerate(items, start=1):
-        cleaned = rel_by_idx.get(idx, [])
-        item["related_history"] = [r.model_dump(mode="json") for r in cleaned]
-        if cleaned:
-            linked_count += 1
+    # 依每個目標日期各自嚴格驗證只連結早於該日期的歷史報導
+    grouped: dict[tuple[str, int], list[RelatedNews]] = {}
+    for entry in result.entries:
+        grouped[(entry.date.strip(), entry.index)] = entry.related_history
+
+    for d_str in valid_targets:
+        day_history = get_history_before(d_str)
+        items = by_date[d_str].get("items") or []
+        linked_count = 0
+        for idx, item in enumerate(items, start=1):
+            raw_rel = grouped.get((d_str, idx), [])
+            cleaned = sanitize_related_history(raw_rel, day_history)
+            item["related_history"] = [r.model_dump(mode="json") for r in cleaned]
+            if cleaned:
+                linked_count += 1
+        print(f"完成！{d_str} 共為 {linked_count}/{len(items)} 則新聞建立前情提要脈絡。")
 
     ARCHIVE_PATH.write_text(
         json.dumps(archive, ensure_ascii=False, indent=2) + "\n",
         encoding="utf-8",
     )
-    print(f"完成！已為 {target_date_str} 中的 {linked_count}/{len(items)} 則新聞建立前情提要脈絡。")
+    return 0
+
+
+def process_multi_day_batch(
+    client: genai.Client,
+    batch_dates: list[str],
+    pooled_articles: list[dict[str, Any]],
+) -> int:
+    """以單次 Gemini API 呼叫同時整理多個連續日期，大幅節省免費層每日請求次數。"""
+    now_tw = datetime.now(TAIWAN_TZ)
+    ordered_dates = sorted(batch_dates)
+    day_articles: list[tuple[str, list[dict[str, Any]]]] = []
+
+    for d_str in ordered_dates:
+        day_start_tw = datetime.strptime(d_str, "%Y-%m-%d").replace(tzinfo=TAIWAN_TZ)
+        day_end_tw = day_start_tw + timedelta(days=1) - timedelta(seconds=1)
+        start_utc = day_start_tw.astimezone(timezone.utc)
+        end_utc = day_end_tw.astimezone(timezone.utc)
+
+        exclude_urls = get_existing_urls_except(d_str)
+        day_items = [
+            art for art in pooled_articles if start_utc <= art["published_utc"] <= end_utc
+        ]
+        candidates = finalize_candidates(day_items, exclude_urls)[:MAX_CANDIDATES_PER_DAY_IN_BATCH]
+        if candidates:
+            day_articles.append((d_str, candidates))
+        else:
+            print(f"[警告] 日期 {d_str} 在歷史文章池中無候選文章，略過。", file=sys.stderr)
+
+    if not day_articles:
+        return 0
+
+    earliest_date = day_articles[0][0]
+    history = get_history_before(earliest_date)
+    prompt = build_multi_day_prompt(day_articles, history)
+
+    print(
+        f"=== 多日合併批次整理：{day_articles[0][0]} ~ {day_articles[-1][0]}"
+        f"（共 {len(day_articles)} 天、單次 API 呼叫，歷史清單 {len(history)} 則） ==="
+    )
+    try:
+        multi: MultiDayBriefing = generate_structured_with_fallback(
+            client=client,
+            prompt=prompt,
+            schema=MultiDayBriefing,
+            system_instruction=SYSTEM_INSTRUCTION,
+        )
+    except Exception as exc:
+        print(
+            f"[錯誤] 呼叫 Gemini API 失敗（批次 {day_articles[0][0]}~{day_articles[-1][0]}）：{exc}",
+            file=sys.stderr,
+        )
+        return 1
+
+    target_set = {d for d, _ in day_articles}
+    returned_days = sorted(
+        [d for d in multi.days if d.date.strip() in target_set],
+        key=lambda d: d.date.strip(),
+    )
+
+    if not returned_days:
+        print("[錯誤] 模型未回傳任何符合目標日期的簡報資料。", file=sys.stderr)
+        return 1
+
+    for day_entry in returned_days:
+        d_str = day_entry.date.strip()
+        # 逐日寫入 archive.json，讓同批次後面的日期可安全驗證連結到前面的日期
+        valid_hist = get_history_before(d_str)
+        for item in day_entry.items:
+            item.related_history = sanitize_related_history(item.related_history, valid_hist)
+        linked_count = sum(1 for item in day_entry.items if item.related_history)
+        updated_archive = update_archive(
+            DailyBriefing(items=day_entry.items),
+            now_tw,
+            target_date_str=d_str,
+        )
+        print(
+            f"完成！已精選 {len(day_entry.items)} 則新聞（其中 {linked_count} 則附帶前情提要脈絡）"
+            f"寫入 {ARCHIVE_PATH.name}（日期：{d_str}），目前共保存 {len(updated_archive)} 天歷史紀錄。"
+        )
     return 0
 
 
@@ -955,7 +1080,18 @@ def main() -> int:
         "--relink-dates",
         type=str,
         default="",
-        help="選填：僅為 archive.json 中已存在的日期補齊 60 天相關舊聞脈絡",
+        help="選填：僅為 archive.json 中已存在的日期補齊 60 天相關舊聞脈絡（單次合併呼叫）",
+    )
+    parser.add_argument(
+        "--batch-days",
+        type=int,
+        default=0,
+        help="選填：每次 API 呼叫合併處理的天數（例如 5 代表 5 天合為 1 次呼叫，預設 1）",
+    )
+    parser.add_argument(
+        "--skip-existing",
+        action="store_true",
+        help="選填：回補日期時自動略過 archive.json 中已存在的日期",
     )
     args = parser.parse_args()
 
@@ -967,23 +1103,53 @@ def main() -> int:
 
     raw_dates = args.dates.strip() or os.environ.get("TARGET_DATES", "").strip()
     raw_relink = args.relink_dates.strip() or os.environ.get("RELINK_DATES", "").strip()
+    env_batch = os.environ.get("BATCH_DAYS", "").strip()
+    batch_days = args.batch_days or (int(env_batch) if env_batch.isdigit() else 1)
+    batch_days = max(1, min(batch_days, 7))
+    skip_existing = args.skip_existing or (
+        os.environ.get("SKIP_EXISTING", "").strip().lower() in ("1", "true", "yes")
+    )
 
     if raw_dates:
         date_list = expand_date_spec(raw_dates)
-        pooled = fetch_historical_pool(date_list)
-        for idx, d in enumerate(date_list):
-            code = process_single_date(client, target_date_str=d, pooled_articles=pooled)
-            if code != 0:
-                return code
-            if idx < len(date_list) - 1:
-                time.sleep(10)
+        if skip_existing:
+            existing_dates = {
+                str(e.get("date"))
+                for e in load_archive(ARCHIVE_PATH)
+                if isinstance(e, dict) and e.get("date")
+            }
+            before_len = len(date_list)
+            date_list = [d for d in date_list if d not in existing_dates]
+            skipped = before_len - len(date_list)
+            if skipped:
+                print(f"[資訊] 已自動略過 {skipped} 個已存在的存檔日期。")
+
+        if date_list:
+            pooled = fetch_historical_pool(date_list)
+            if batch_days > 1:
+                chunks = [
+                    date_list[i : i + batch_days]
+                    for i in range(0, len(date_list), batch_days)
+                ]
+                for idx, chunk in enumerate(chunks):
+                    code = process_multi_day_batch(client, chunk, pooled)
+                    if code != 0:
+                        return code
+                    if idx < len(chunks) - 1:
+                        time.sleep(10)
+            else:
+                for idx, d in enumerate(date_list):
+                    code = process_single_date(client, target_date_str=d, pooled_articles=pooled)
+                    if code != 0:
+                        return code
+                    if idx < len(date_list) - 1:
+                        time.sleep(10)
 
     if raw_relink:
         relink_list = expand_date_spec(raw_relink)
-        for d in relink_list:
-            code = relink_existing_date(client, d)
-            if code != 0:
-                return code
+        code = relink_existing_dates_batch(client, relink_list)
+        if code != 0:
+            return code
 
     if raw_dates or raw_relink:
         return 0

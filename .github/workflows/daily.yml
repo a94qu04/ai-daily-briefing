@@ -11,9 +11,18 @@ on:
         required: false
         default: ""
       relink_dates:
-        description: "選填：為既有的 archive.json 日期補齊 60 天相關舊聞脈絡（逗號分隔或區間）"
+        description: "選填：為既有的 archive.json 日期補齊 60 天相關舊聞脈絡（逗號分隔或區間，單次呼叫完成）"
         required: false
         default: ""
+      batch_days:
+        description: "選填：每次 API 呼叫合併處理天數（1～7，回補多日時建議設為 5 以節省配額）"
+        required: false
+        default: "1"
+      skip_existing:
+        description: "選填：回補時是否自動略過 archive.json 已存在的日期"
+        type: boolean
+        required: false
+        default: false
 
 permissions:
   contents: write
@@ -41,6 +50,8 @@ jobs:
           GEMINI_API_KEY: ${{ secrets.GEMINI_API_KEY }}
           TARGET_DATES: ${{ inputs.target_dates }}
           RELINK_DATES: ${{ inputs.relink_dates }}
+          BATCH_DAYS: ${{ inputs.batch_days }}
+          SKIP_EXISTING: ${{ inputs.skip_existing }}
         run: python fetch_news.py
 
       - name: Commit and push updated archive.json
