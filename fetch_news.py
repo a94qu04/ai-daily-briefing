@@ -100,16 +100,15 @@ GEMINI_TIMEOUT_MS = 90_000
 
 DEFAULT_MODELS = [
     "gemini-3.5-flash",
-    "gemini-3.8-flash",
     "gemini-3.5-flash-lite",
     "gemini-3.1-flash-lite",
-    "gemini-3.6-flash",
-    "gemini-3.7-flash",
+    "gemini-3.8-flash",
 ]
 MODEL_NAME = os.environ.get("GEMINI_MODEL", DEFAULT_MODELS[0])
 
-# 同一次執行批次中記住已驗證成功的模型，避免重複等待忙碌模型
+# 同一次執行批次中記住已驗證成功的模型，並排除不可用或無配額模型
 _LAST_WORKING_MODEL: str | None = None
+_DISABLED_MODELS: set[str] = set()
 
 BASE_DIR = Path(__file__).resolve().parent
 ARCHIVE_PATH = BASE_DIR / "archive.json"
@@ -630,25 +629,27 @@ def generate_structured_with_fallback(
     schema: type[BaseModel],
     system_instruction: str,
 ) -> Any:
-    """呼叫 Gemini 結構化輸出（自動重試、記住可用模型並切換備援模型）。"""
+    """呼叫 Gemini 結構化輸出（多輪重試應對 503 尖峰、記住可用模型並排除無配額模型）。"""
     global _LAST_WORKING_MODEL
 
-    candidate_models: list[str] = []
+    base_models: list[str] = []
     for m in [_LAST_WORKING_MODEL, MODEL_NAME, *DEFAULT_MODELS]:
-        if m and m not in candidate_models:
-            candidate_models.append(m)
+        if m and m not in base_models and m not in _DISABLED_MODELS:
+            base_models.append(m)
 
-    max_attempts_per_model = 2
+    max_rounds = 5
     last_error: Exception | None = None
-    tried_models: set[str] = set()
+    response = None
 
-    def try_model(model_id: str) -> Any | None:
-        nonlocal last_error
-        tried_models.add(model_id)
-        for attempt in range(1, max_attempts_per_model + 1):
-            print(f"正在呼叫 {model_id}（第 {attempt}/{max_attempts_per_model} 次）...")
+    for round_idx in range(1, max_rounds + 1):
+        active_models = [m for m in base_models if m not in _DISABLED_MODELS]
+        if not active_models:
+            break
+
+        for model_id in active_models:
+            print(f"正在呼叫 {model_id}（第 {round_idx}/{max_rounds} 輪）...")
             try:
-                resp = client.models.generate_content(
+                response = client.models.generate_content(
                     model=model_id,
                     contents=prompt,
                     config=types.GenerateContentConfig(
@@ -658,11 +659,12 @@ def generate_structured_with_fallback(
                         temperature=0.3,
                     ),
                 )
-                return resp
+                _LAST_WORKING_MODEL = model_id
+                break
             except Exception as exc:
                 last_error = exc
                 err_msg = str(exc)
-                short_err = err_msg.replace("\n", " ")[:220]
+                short_err = err_msg.replace("\n", " ")[:200]
                 is_not_found = "404" in err_msg or "NOT_FOUND" in err_msg
                 is_zero_or_daily_quota = (
                     "limit: 0" in err_msg
@@ -685,44 +687,29 @@ def generate_structured_with_fallback(
                 )
                 if is_not_found or is_zero_or_daily_quota:
                     print(
-                        f"[警告] 模型 {model_id} 無法使用或達每日配額（{short_err}），切換下一個備援模型...",
+                        f"[警告] 模型 {model_id} 不可用或已達每日配額（{short_err}），本批次不再嘗試。",
                         file=sys.stderr,
                     )
-                    return None
-                if is_transient and attempt < max_attempts_per_model:
-                    retry_match = re.search(r"retryDelay['\"]?:\s*['\"]?(\d+)s", err_msg)
-                    wait_seconds = min(int(retry_match.group(1)) + 2, 65) if retry_match else 6 * attempt
-                    print(
-                        f"[警告] {model_id} 暫時受限（{short_err}），將於 {wait_seconds} 秒後重試...",
-                        file=sys.stderr,
-                    )
-                    time.sleep(wait_seconds)
+                    _DISABLED_MODELS.add(model_id)
                     continue
                 if is_transient:
                     print(
-                        f"[警告] {model_id} 持續忙碌（{short_err}），切換至下一個備援模型...",
+                        f"[警告] {model_id} 暫時忙碌（{short_err}），切換下一個模型...",
                         file=sys.stderr,
                     )
-                    return None
+                    continue
                 raise
-        return None
 
-    response = None
-    for model_id in candidate_models:
-        response = try_model(model_id)
         if response is not None:
-            _LAST_WORKING_MODEL = model_id
             break
 
-    if response is None:
-        extra_models = discover_fallback_models(client, tried_models)
-        if extra_models:
-            print(f"[資訊] 偵測到其他可用備援模型：{', '.join(extra_models)}")
-            for model_id in extra_models:
-                response = try_model(model_id)
-                if response is not None:
-                    _LAST_WORKING_MODEL = model_id
-                    break
+        if round_idx < max_rounds and any(m not in _DISABLED_MODELS for m in base_models):
+            wait_seconds = 12 * round_idx
+            print(
+                f"[警告] 本輪所有可用模型皆暫時尖峰滿載，將於 {wait_seconds} 秒後進入第 {round_idx + 1} 輪重試...",
+                file=sys.stderr,
+            )
+            time.sleep(wait_seconds)
 
     if response is None:
         raise RuntimeError(f"所有候選模型均無法完成請求，最後錯誤：{last_error}")
