@@ -270,6 +270,153 @@
     ]
   },
   {
+    "date": "2026-11-04",
+    "generated_at": "2026-11-24T05:08:55+08:00",
+    "items": [
+      {
+        "category": "模型與技術突破",
+        "source": "科技新報 AI",
+        "title": "MIT 最新研究：AI 不需重新訓練即可直接微創修改其他模型權重",
+        "bullets": [
+          "麻省理工學院（MIT）發表最新研究，展示 AI 模型能直接以「微創」方式編輯其他 AI 的底層神經網路權重。",
+          "該技術打破過去必須透過繁複微調（Fine-tuning）或重頭訓練的限制，顯著降低模型調整與優化的算力成本。",
+          "研究團隊利用此方法精準修正模型的邏輯漏洞與特定知識偏差，展現出極高的修改效率與精準度。"
+        ],
+        "analysis": "此技術突破標誌著模型營運與維護（ModelOps）進入精準外科手術時代，未來企業無須耗費鉅額算力重訓即可即時修補模型缺陷，大幅降低大型語言模型的維護門檻。",
+        "url": "https://news.google.com/rss/articles/CBMifEFVX3lxTFBjemNkb0p6U3h4N1NZblB4NUEwbFdPVVpfN0JxVDdnRmpwRXJMVVJqTW5zcFpYWlZzTTBEMnB4OEtteEJGeGFNYmg3WWxBSTUyR29POUJkcVhUOUUzN1FFUWxONTJEdEVBeTNqMXJ5bFVsWVBoZ2pTa3hwUWg?oc=5",
+        "related_history": [
+          {
+            "date": "2026-11-02",
+            "title": "麻省理工學院利用 GPT-6 Astra 直接編輯 Qwen 開源權重，大幅提升數學推論能力",
+            "relation": "延續先前 MIT 使用 GPT-6 Astra 編輯開源模型權重的實驗，本次研究確立了免重訓即可微創修改模型的技術架構。"
+          }
+        ]
+      },
+      {
+        "category": "模型與技術突破",
+        "source": "INSIDE 硬塞",
+        "title": "Anthropic 發布 FlashProve 研究原型，利用密碼學驗證 AI 回應模型身份",
+        "bullets": [
+          "Anthropic 公開 FlashProve 研究原型，結合密碼學技術為 AI 生成內容提供可驗證的數位簽章。",
+          "使用者與企業可藉此即時驗證某段 AI 回應是否確實出自特定版本的 Claude 模型，防範模型欺詐與偽造。",
+          "該機制在不顯著增加推論延遲的前提下完成安全驗證，為高安全需求的應用場景建立防禦底線。"
+        ],
+        "analysis": "隨著 API 代理服務與模型包裝軟體激增，模型身份真實性成為企業資安新挑戰，FlashProve 透過密碼學劃定信任基石，有助於推動 AI 於金融與法律等高合規產業的落地。",
+        "url": "https://news.google.com/rss/articles/CBMihgFBVV95cUxQRkZiNDMxTEZLdG5FcFpySTVINXR3V056ZnZ2UGpnQ3ZFLTR0bF90enhjRDZfajlUU1h3Tm5VeEpLaUYtUzlmN0xpcWVNWFVfVnU2emp4Uk5pNWtWcXJqVHc0c3ZiRUFoelZUVVFpamtia2pqRXd6WFZuMHRoRDBJSXl6U0Y2Zw?oc=5",
+        "related_history": []
+      },
+      {
+        "category": "模型與技術突破",
+        "source": "INSIDE 硬塞",
+        "title": "AI 代理生成程式碼速度超越極限，OpenAI 與 Anthropic 雙雙自研 Git 管理後端",
+        "bullets": [
+          "OpenAI 與 Anthropic 因應內部 AI 代理（AI Agents）自動化寫碼與提交的高頻率，紛紛建立客製化的 Git 儲存庫管理後端。",
+          "傳統 Git 底層架構難以承受 AI 代理每秒產出數百次 Commit 與分支變更的巨大吞吐量，極易引發版本衝突與鎖定問題。",
+          "兩大 AI 巨頭新構建的高效能控制系統，大幅提升了 AI 代理執行大規模軟體開發專案的併發能力。"
+        ],
+        "analysis": "AI 軟體工程師已開始倒逼基礎設施重構，傳統開發者工具鏈面臨升級壓力，能率先解決 AI 代理併發協作瓶頸的公司將獲得更高的開發自動化優勢。",
+        "url": "https://news.google.com/rss/articles/CBMingFBVV95cUxQMVVENk10OWphbWs1OE8wX0UtNFNQNzE1ZVhhRXZFajhwb09meWNIbmd2OGJMVFRRdjZ6YVFWcm5JVk14NGZ0N2xOb3VaZlU3VlNnN0RJOFM2akgxUTBQFYS0yenh3d2xtTl_vtdsuoL2cwL295dy16X21Xb2NOMzVWTmdodVRjMXY5SDJQcHhPZWdFNjlxb0trZw?oc=5",
+        "related_history": []
+      },
+      {
+        "category": "商業與市場動態",
+        "source": "科技新報 AI",
+        "title": "美科技五大巨頭 AI「影子債務」飆至 3.2 兆美元，資本開支過度集中引發市場警戒",
+        "bullets": [
+          "研調顯示科技巨頭為了建置 AI 資料中心與購買 GPU 算力，累積的影子債務與長期租賃承諾高達 3.2 兆美元。",
+          "市場分析師警告高槓桿融資與集中投資風險正持續上升，若 AI 變現商業模式延遲，恐對企業現金流帶來壓力。",
+          "金融機構正密切關注資本開支回報率（ROIC），資本市場對 AI 概念股的風險偏好逐步趨向保守。"
+        ],
+        "analysis": "巨大資本開支讓科技巨頭面臨「Token 變現焦慮」，資本市場轉向嚴格檢視實際獲利能力，科技業可能面臨投資步調修正與資產負債表重構壓力。",
+        "url": "https://news.google.com/rss/articles/CBMilAFBVV95cUxPek1RejlEa3RoZU9KdmNrNU9KM3A5cE9nOFhXNllUNXFqMkZpUUtnbGs4cThabTRqd3BrYW05NTFDVUZtQnVMLUNWbEgzbl8tUUg3X0gzY196SWRBejRGUEwxSkROZ1o1T0ZudWdEcTRyellPSUVuVGowR2FNVVJnbXdaSC10RTBnNjlJbjZCdUtndlps?oc=5",
+        "related_history": [
+          {
+            "date": "2026-11-03",
+            "title": "甲骨文擬再籌資 200 億美元發債衝刺 AI 基建，引發市場對高負債疑慮",
+            "relation": "反映出雲端與 AI 服務商為衝刺基礎建設強烈仰賴債務融資，進一步推高了市場對整體影子債務規模的擔憂。"
+          }
+        ]
+      },
+      {
+        "category": "商業與市場動態",
+        "source": "TechCrunch AI",
+        "title": "AI 推論新創 Fal 完成 13 億美元融資，估值翻倍飆升至 160 億美元",
+        "bullets": [
+          "專注於生成式 AI 媒體推論基礎設施的 Fal 宣布完成由 Bessemer 領投的 13 億美元融資。",
+          "Fal 的估值在短時間內翻倍達到 160 億美元，反映市場對極速多媒體推論 API 的強勁需求。",
+          "該公司計畫將新資金用於擴充算力集群規模，並優化即時圖像與影片生成的推論延遲。"
+        ],
+        "analysis": "從模型訓練轉向模型推論的產業軸轉趨勢日益明顯，Fal 的超高估值證明了推論服務已成為現階段 AI 價值鏈中最具商業變現力的實體戰場。",
+        "url": "https://techcrunch.com/2026/11/03/ai-inference-startup-fal-doubles-its-valuation-to-16b-as-demand-surges/",
+        "related_history": []
+      },
+      {
+        "category": "硬體與應用落地",
+        "source": "科技新報 AI",
+        "title": "華邦電搶攻 AI 算力商機，矽電容與 CUBE 雙引擎將於 2027 年進入量產收割期",
+        "bullets": [
+          "華邦電子宣佈布局 AI 算力硬體有成，旗下客製化高頻寬記憶體（CUBE）與矽電容（Silicon Capacitor）雙軌並進。",
+          "矽電容能有效降低高效能運算晶片的電源雜訊，CUBE 則提供極具成本優勢的高頻寬邊緣算力解決方案。",
+          "公司預估兩項關鍵技術將於 2027 年迎來大規模量產收割期，成為台灣半導體供應鏈的新成長動能。"
+        ],
+        "analysis": "華邦電以 CUBE 和矽電容切入 AI 算力供應鏈，顯示台灣記憶體廠正加速從傳統商品化記憶體轉型為高附加價值的算力硬體合作夥伴。",
+        "url": "https://news.google.com/rss/articles/CBMi4AFBVV95cUxNemdaenZnclBZdHlYMF9nR1ZIZl9VTDF1cm9VUG1uRzdXU2JVakhrTkg1UEtxNDN5a1dBVHdaZkszVHdrVUY1bDJCb0VIbWh6Vk9pQ3U3ZWx4akExMjVIMW5aZGlIX0NfWGJZczY3RENEdlFKSXo4RTBpd25vaklwWmJmU2taaVFDUHJCMVNTWUU2NVV5RlFxd2I5YnZtQW9ucnRMTFVrSUZMVmk4R3FJRHRIWmE3d1ZpSVBiMnktS0RGWWhPUGEzQzAwaGF2eEZ0cmNRRUttLTFLdkV1U1RTMQ?oc=5",
+        "related_history": []
+      },
+      {
+        "category": "硬體與應用落地",
+        "source": "TechCrunch AI",
+        "title": "電網等待期過長，資料中心建商轉向採用退役噴射引擎應急發電",
+        "bullets": [
+          "由於獲取公用電網容量的等待期長達數年，多家 AI 資料中心建商開始採用改裝的退役噴射引擎作為臨時電力來源。",
+          "此類航太衍生型發電機組雖然部署速度極快，但能源轉換效率較低且碳排放過高，引發環保團體關注。",
+          "電力缺口已成為限制全球大型 AI 資料中心快速建置與上線運作的最大瓶頸。"
+        ],
+        "analysis": "算力擴建受限於能源供應，業者寧可採用高成本且低效能的替代解決方案，凸顯出電力資源在 AI 競賽中已升格為最重要的戰略物資。",
+        "url": "https://techcrunch.com/2026/11/03/data-centers-are-turning-to-old-jet-engines-as-the-wait-for-power-grows/",
+        "related_history": [
+          {
+            "date": "2026-11-02",
+            "title": "OpenAI 提議為資料中心自建專用電廠，以降低對周邊社區供電的衝擊",
+            "relation": "兩者皆凸顯 AI 算力需求的爆發性成長與基礎電網容量極度失衡，迫使業者尋求各類離網能源解方。"
+          }
+        ]
+      },
+      {
+        "category": "政策法規與資安隱私",
+        "source": "科技新報 AI",
+        "title": "歐盟首宗生成式 AI 著作權意見書出爐：認定模型訓練合法、生成特定內容恐違法",
+        "bullets": [
+          "歐盟司法機構發布首宗針對生成式 AI 的著作權指導意見書，劃清 AI 訓練與生成的法律界線。",
+          "意見書指出，在遵守合理使用規範下使用公眾資料進行 AI 模型訓練原則上合法；但若生成內容與原作高度重疊則可能構成侵權。",
+          "此意見書將作為未來歐盟法院審理相關 AI 版權訴訟案的重要參考基準。"
+        ],
+        "analysis": "歐盟明確區分「訓練」與「生成」的法律責任，為 AI 模型的訓練資料獲取給予法理空間，同時將合規風險轉移至最終生成產出的控管上。",
+        "url": "https://news.google.com/rss/articles/CBMib0FVX3lxTFBQa2V2V181eFAwazhwZWVuMEFVS1J5anVrYjlXeHJwZ3MtZ25qN19PWk4wb1JGYzhJRS12NTBGQWRVNW82Ujctamt0YS01V1NCb3IxU1N2VEJ1ZHY5UTFUYmNZYWd1SUJZV0FUVjNBUQ?oc=5",
+        "related_history": []
+      },
+      {
+        "category": "政策法規與資安隱私",
+        "source": "科技新報 AI",
+        "title": "將網銀密碼交給 AI 代理代管帳務？Meta 前資安長警告恐引發重大資安風暴",
+        "bullets": [
+          "Meta 前資安長 Alex Stamos 出面公開警告，許多使用者將網路銀行帳密直接授權給 AI 代理協助記帳與理財的行為極度危險。",
+          "專家指出現階段 AI 代理極易遭受提示詞注入（Prompt Injection）攻擊，一旦遭黑客入侵將導致財務資產被清空。",
+          "安全專家呼籲金融監管機構與銀行應儘速建立針對 AI 代理自動化存取帳戶的安全標準與驗證機制。"
+        ],
+        "analysis": "當 AI 代理由單純諮詢走向直接代行決策（Agentic Action），傳統認證機制已被打破，金融業急需建構針對自主 AI 的安全防禦架構以降低營運風險。",
+        "url": "https://news.google.com/rss/articles/CBMigAFBVV95cUxNMXdxWmtKU0NyNGlUd0xIczFRTk9oZUwzU2pfTHlqcDRENk5SMDZrNnJVaGJrUXFHTU8wWGh3dTB0ejN5VzhTN3ZPM180ZVJIRmxvX0Z1RnFLbW51c1ppVnl4ak82M0cxcUxleGZCaHZtSmhsTC1ZUGZmVUw2N2c0dQ?oc=5",
+        "related_history": [
+          {
+            "date": "2026-11-01",
+            "title": "AI 代理人無需越權即可失控，專家呼籲建立防範代理人異常的新型控管機制",
+            "relation": "同樣反映業界對自主 AI 代理權限過大且缺乏新型安全控管機制的強烈擔憂。"
+          }
+        ]
+      }
+    ]
+  },
+  {
     "date": "2026-11-03",
     "generated_at": "2026-11-24T04:59:50+08:00",
     "items": [
