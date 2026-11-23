@@ -270,6 +270,135 @@
     ]
   },
   {
+    "date": "2026-11-03",
+    "generated_at": "2026-11-24T04:59:50+08:00",
+    "items": [
+      {
+        "category": "模型與技術突破",
+        "source": "TechCrunch AI",
+        "title": "Anthropic 警告已逼近 RSI 臨界點，AI 自我改進能力引發安全疑慮",
+        "bullets": [
+          "Anthropic 發布最新預警，指出其 AI 模型正接近「遞迴自我改進（RSI）」階段，即 AI 具備自主訓練與提升自身能力的技術。",
+          "RSI 被視為 AI 能力劇烈加速的關鍵節點，可能引發模型能力在短時間內呈爆發性成長。",
+          "安全專家警告，若缺乏有效監控機制，RSI 可能導致 AI 系統超脫人類控制範疇。"
+        ],
+        "analysis": "RSI 標誌著 AI 發展從「人類監督訓練」邁向「自主疊代」的轉折點，這將強烈考驗頭部 AI 企業在追求模型突破與建立嚴格防護欄（Guardrails）之間的平衡。",
+        "url": "https://techcrunch.com/2026/11/02/anthropic-warns-that-its-very-close-to-rsi-capability-aka-self-building-ai/",
+        "related_history": []
+      },
+      {
+        "category": "模型與技術突破",
+        "source": "TechCrunch AI",
+        "title": "42AI 獲 6,250 萬美元融資結束隱形模式，主打能「預測人類行為」的世界模型",
+        "bullets": [
+          "新創公司 42AI 完成 6,250 萬美元融資，首度公開其研發的「行為預測世界模型」。",
+          "該模型強調能在全新環境與未曾見過的場景中，精準預測人類接下來的行動與決策脈絡。",
+          "技術核心在於超越傳統語言文字預測，轉向對物理世界動態與人類行為意圖的深度模擬。"
+        ],
+        "analysis": "將世界模型（World Models）的應用場景從機器人動作控制延伸至人類行為預測，有望為自動駕駛、智慧安防及商業模擬帶來全新的技術範式。",
+        "url": "https://techcrunch.com/2026/11/02/42ai-comes-out-of-stealth-with-62-5m-and-a-world-model-that-can-predict-human-behavior/",
+        "related_history": []
+      },
+      {
+        "category": "商業與市場動態",
+        "source": "INSIDE 硬塞",
+        "title": "Anthropic 更新 IPO 招股書：揭露 8,954 億美元算力承諾與第三季營業虧損",
+        "bullets": [
+          "Anthropic 在最新遞交的 IPO 招股書文件中，揭露累計高達 8,954 億美元的長期算力採購承諾。",
+          "公司同步揭露第三季營業虧損持續擴大，反映出大模型開發與基建攤提的龐大財務壓力。",
+          "儘管營收保持成長，昂貴的伺服器與資料中心合約仍是拖累獲利表現的主因。"
+        ],
+        "analysis": "極高昂的算力承諾顯現出頭部 AI 模型廠商對基礎設施的強烈依賴，投資人將持續審視其營收成長速度能否在上市前彌補龐大的燒錢缺口。",
+        "url": "https://news.google.com/rss/articles/CBMilwFBVV95cUxOMm1lT1lMdDBqV0g0SXVfTGFTZGZOb1RFRHpVVzFxRkJVbktqTDZSTXBzNWlHMXFaZHN1aU9TTzVvWWptMXJYMmM2c2JzaU5xSWsxbUNucFpnMnBZUW04S0NkVy11dnN0ZzJ6aWZpUmhOendOS2l5WjlhRFBTbUIwaVFVNUdJSmtpSkxrYms4VTJYMzZWbEcw?oc=5",
+        "related_history": []
+      },
+      {
+        "category": "商業與市場動態",
+        "source": "科技新報 AI",
+        "title": "甲骨文擬再籌資 200 億美元發債衝刺 AI 基建，引發市場對高負債疑慮",
+        "bullets": [
+          "甲骨文（Oracle）宣布啟動新一輪高達 200 億美元的籌資計畫，資金將全數投入 AI 資料中心擴建。",
+          "這是甲骨文近期最大規模的融資動作，旨在滿足客戶對雲端算力與高效能伺服器爆發性的需求。",
+          "市場分析師對於甲骨文大幅舉債支應 AI 資本支出的作法表達疑慮，擔憂財務槓桿過高風險。"
+        ],
+        "analysis": "雲端服務巨頭爭相舉債擴建算力設施，反映 AI 基建軍備競賽已進入資本密集戰階段，但也加劇了市場對投資報酬率（ROI）兌現時程的擔憂。",
+        "url": "https://news.google.com/rss/articles/CBMijgFBVV95cUxPOWpCb0drelk2N05WVHVNQU9xRm5rTGVHcElnT04zRnE2QWxudmFIOEEycDJtMUYxbzNCbWZOV0hFTnc3UjJlTjR5clBaT2J2WjRlOHhqTDg5RmVnNmw2UEVwSzZkXzB4VGh6RDRKUE1WS1V5ZEsyekZSVHRpcHh4UDlMWS1odzhFTF9YZUZB?oc=5",
+        "related_history": []
+      },
+      {
+        "category": "商業與市場動態",
+        "source": "科技新報 AI",
+        "title": "美銀警示 AI 投資退燒風險，指出美國期中選舉將牽動資料中心政策變數",
+        "bullets": [
+          "美國銀行（Bank of America）發布報告警告，過度集中的 AI 資本支出可能正面臨熱度回落與效益檢驗風險。",
+          "報告特別指出即將到來的美國期中選舉，可能因電力供應與地方爭議影響資料中心的審批與興建進度。",
+          "政策變數與能源缺口將成為影響科技巨頭未來 AI 基建投資落地的關鍵外部挑戰。"
+        ],
+        "analysis": "AI 資料中心的發展已非純粹的技術與資金比拚，政治選舉、地方反彈與電網負擔等實體約束，正在成為重塑 AI 產業鏈佈局的核心議題。",
+        "url": "https://news.google.com/rss/articles/CBMiyAFBVV95cUxPd0VNdGxKUzlsdExYblBNNjhPY2hwalltZmVnZ2JCemlZZzAxeUpuLTU3aVE0TEtHMnc1dXJIVEdsWjcwam1ac0ZOU1hUd0psRWNld19DeWZmcmgxR21RSUZ6WnZ3M25Gdi1URDZ0eUVLSUFWMEE4OVZjMGU1a1R3aG04OVhuX094bFdxOWdESFl5TlpsdHBVYWlCbVFOQjM4b1hJM0h1dlEzLXk4THJpcjd4X2FCSXJwNVdVbF9DLXcwU2cxalRnQQ?oc=5",
+        "related_history": [
+          {
+            "date": "2026-11-01",
+            "title": "資料中心建設爭議升溫，首度躍升為美國期中選舉政治焦點議題",
+            "relation": "延續期中選舉聚焦資料中心爭議的脈絡，美銀報告進一步指出選舉結果可能對 AI 基礎建設的資本支出造成衝擊與變數。"
+          }
+        ]
+      },
+      {
+        "category": "硬體與應用落地",
+        "source": "科技新報 AI",
+        "title": "功耗大降 98%！日本愛信發表 MRAM 車用 AI 晶片，強攻邊緣運算",
+        "bullets": [
+          "日本汽車零件巨頭愛信（Aisin）開發出採用磁阻隨機存取記憶體（MRAM）的新型 AI 晶片。",
+          "該晶片相較於傳統方案實現高達 98% 的功耗削減，顯著提升車載邊緣端 AI 推論的能源效率。",
+          "產品專為智慧駕駛與即時車載感測器資料處理所設計，預期將推動極致節能的車用晶片市場。"
+        ],
+        "analysis": "車載邊緣運算對熱管理與功耗極度敏感，利用 MRAM 技術實現超低功耗推論，將有助於加速高階輔助駕駛系統（ADAS）在車輛端普及。",
+        "url": "https://news.google.com/rss/articles/CBMicEFVX3lxTFBVOUQ0d3RoNUpEV1d6cEtlSGI5VW9NYVdualgwc2pTa2hiZmdGRXlCSFVMUDdSaVc3TW5ZeVBuMFhZd0NpazNrWUJ6Tm9GbFp4Y1htRDNoeXQtOXZNQU9GblRvTGFoZlVONUptYWJ2d3A?oc=5",
+        "related_history": []
+      },
+      {
+        "category": "硬體與應用落地",
+        "source": "科技新報 AI",
+        "title": "馬斯克傳轉變態度，旗下 Terafab 重啟與台積電的晶片代工談判",
+        "bullets": [
+          "消息指出，馬斯克主導的 Terafab 計畫正重新與台積電接洽，討論高階 AI 晶片代工與先進封裝合作。",
+          "先前 Terafab 曾試圖建立自主供應鏈，但受限於量產良率與技術門檻而出現策略轉向。",
+          "雙方若達成協議，將進一步鞏固台積電在頂級 AI 客製化晶片（ASIC）製造的龍頭地位。"
+        ],
+        "analysis": "即便科技巨頭具備強大的晶片設計能力，先進製程與封裝技術（如 CoWoS）的高門檻仍讓台積電成為全球 AI 晶片量產不可或缺的核心合作夥伴。",
+        "url": "https://news.google.com/rss/articles/CBMikAFBVV95cUxOSFlnX29kRHFrZ0h5UUE1anN6dG5JWVJBbVFHeWlmX2VDRTFVZTlTU1dYcTc5S18zaG91aEs1REZKS1BpRi1UTDA1VVJnRktpUGFvajU2N0cwTHV1OF9rM0llaEllUUtheWMzd3ZBSktDR3BuNWJ1RFpZVGpSTUxjc1cyS0ktUHE2a2VXTUpYQzc?oc=5",
+        "related_history": []
+      },
+      {
+        "category": "政策法規與資安隱私",
+        "source": "The Verge AI",
+        "title": "紐約時報等新聞巨頭起訴 Brave 瀏覽器，指控其未經授權擷取內容餵給 AI",
+        "bullets": [
+          "《紐約時報》等多家主流媒體聯合向 Brave 瀏覽器發起訴訟，指控其未經授權爬取付費牆後方的版權新聞內容。",
+          "訴狀指出 Brave 將擷取到的新聞資料庫分發給 Anthropic 與 Perplexity 等 AI 公司用於模型訓練與搜尋回答。",
+          "媒體業主張 Brave 的行為不僅侵犯智慧財產權，更破壞了新聞訂閱制與付費牆商業模式。"
+        ],
+        "analysis": "該訴訟將爭議焦點從 AI 廠商本身的爬蟲，擴大至提供「資料轉發/爬取中間服務」的瀏覽器工具，預防性爬取行為的法律灰色地帶面臨重新審視。",
+        "url": "https://news.google.com/rss/articles/CBMihAFBVV95cUxQWVN6Z2R4ZUVYdmk5b2lDOFB5ZlROZjkwYWx1N2ltR2lKaVBmbGpNS2N5Y2ttTndmQkRZcDZUSDlza29RVkQtcXdxYjhCdXhqbk90RkJjNlUyR2pFejBfV1VuNEE0QUdKWjFWQWJfYnV0aDdWOWMtaWh0Yy1hVjdZeVFRVkM?oc=5",
+        "related_history": []
+      },
+      {
+        "category": "政策法規與資安隱私",
+        "source": "TechCrunch AI",
+        "title": "蘋果修訂 App Store 審查規範：限定 18 歲以上方可下載 AI 情感陪伴與交友應用",
+        "bullets": [
+          "蘋果更新 App Store 平台政策，強制規定所有包含性意涵或浪漫情感互動的 AI 陪伴及交友 App 必須標註為 18 歲以上使用。",
+          "此舉旨在防止未成年用戶過度沉迷 AI 虛擬關係或接觸不適當的情感互動內容。",
+          "開發者若未按規定更新年齡分級或過濾機制，將面臨 App 下架或審查退件處置。"
+        ],
+        "analysis": "隨著 AI 陪伴與情感類應用爆發，平台業者開始承擔起更嚴格的青少年保護責任，政策轉嚴將迫使 AI 伴侶開發商重新設計內容合規與驗證機制。",
+        "url": "https://techcrunch.com/2026/11/03/apple-restricts-dating-apps-and-ai-companions-to-users-18-and-up/",
+        "related_history": []
+      }
+    ]
+  },
+  {
     "date": "2026-11-02",
     "generated_at": "2026-11-24T04:52:04+08:00",
     "items": [
