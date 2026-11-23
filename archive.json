@@ -1,0 +1,92 @@
+[
+  {
+    "date": "2026-11-24",
+    "generated_at": "2026-11-24T01:41:03+08:00",
+    "items": [
+      {
+        "category": "商業與市場動態",
+        "source": "TechCrunch AI",
+        "title": "Amazon 斥資 75 億美元收購 AI 優化新創 Decart，加速拓展 Trainium 自研晶片生態",
+        "bullets": [
+          "Amazon 宣布以約 75 億美元收購 AI 軟體優化新創 Decart 的技術與研究團隊。",
+          "收購重點在於提升模型推論與訓練效率，為 Amazon 即將全面推廣的自研 AI 晶片 Trainium 鋪路。",
+          "此交易展現雲端巨頭透過軟硬體整合降低對輝達（Nvidia）晶片依賴的決心。"
+        ],
+        "analysis": "Amazon 藉由補強軟體優化層，機能顯著降低企業客戶部署 Trainium 晶片的門檻，加速雲端業者去輝達化與自研晶片商業化的進程。",
+        "url": "https://techcrunch.com/2026/11/23/amazon-snaps-up-decarts-ai-optimization-tech-for-7-5b-as-it-prepares-to-sell-trainium-chips/"
+      },
+      {
+        "category": "商業與市場動態",
+        "source": "TechCrunch AI",
+        "title": "董事會全票通過！黃仁勳上演戲劇性轉折回任輝達 CEO",
+        "bullets": [
+          "輝達董事會發布聲明，確認在經歷深入溝通與討論後，一致投票通過恢復黃仁勳的執行長職務。",
+          "此案先前因婚外情與相關國安調查引發高層人事震盪，黃仁勳的回任獲得美國政府部分高層官員的支持與背書。",
+          "輝達表示公司將持續配合出口管制相關調查，力求穩定供應鏈與市場信心。"
+        ],
+        "analysis": "黃仁勳的迅速歸隊短期內撫平了市場與全球供應鏈的恐慌，但也凸顯出輝達乃至整個 AI 產業高階管理權過度集中於單一核心人物的結構性風險。",
+        "url": "https://techcrunch.com/2026/11/23/nvidia-reverses-course-and-brings-jensen-huang-back-as-ceo/"
+      },
+      {
+        "category": "商業與市場動態",
+        "source": "TechCrunch AI",
+        "title": "企業級 AI 代理需求爆發，Bret Taylor 創立的 Sierra 完成 17.5 億美元融資估值達 300 億",
+        "bullets": [
+          "由前 Salesforce 共同執行長 Bret Taylor 創辦的企業 AI 顧客體驗平台 Sierra 完成 F 輪 17.5 億美元融資。",
+          "Sierra 的市場估值在短短六個月內翻倍，達到 300 億美元的驚人水準。",
+          "資金將用於進一步拓展企業級 AI 代理（AI Agents）在自動化客戶服務與營運流程中的應用。"
+        ],
+        "analysis": "Sierra 估值的暴增反映資本市場正急劇轉向具備明確 ROI 與企業營運整合能力的「代理式 AI」軟體服務，企業自動化升級成為當前獲利最顯著的領域。",
+        "url": "https://techcrunch.com/2026/11/23/sierra-doubles-valuation-to-30b-within-six-months-as-demand-for-ai-in-cx-takes-off/"
+      },
+      {
+        "category": "模型與技術突破",
+        "source": "科技新報 AI",
+        "title": "微軟推出 RDMA over USB4 技術，支援多台 Windows PC 串聯地端執行大模型",
+        "bullets": [
+          "微軟在 Windows 11 中開發全新功能，允許使用者透過 USB4 介面串聯多台 PC 的記憶體與運算資源。",
+          "該技術運用 RDMA（遠端直接記憶體存取）機制，克服個人電腦運算資源分散的傳輸瓶頸。",
+          "透過此架構，小型團隊或開發者能在地端分散式環境中流暢執行過去僅能在伺服器運行的百億級大語言模型。"
+        ],
+        "analysis": "此舉大大降低了邊緣端與地端運算大模型的硬體門檻，預計將帶動個人電腦市場（Copilot+ PC）在去中心化與邊緣 AI 應用的多元發展。",
+        "url": "https://technews.tw/2026/11/23/microsoft-introduces-rdma-over-usb4-on-windows/"
+      },
+      {
+        "category": "硬體與應用落地",
+        "source": "科技新報 AI",
+        "title": "Anthropic 大模型移植 AMD 晶片僅耗時 3 天，輝達 CUDA 生態護城河面臨市場考驗",
+        "bullets": [
+          "Anthropic 最新技術報告顯示，旗下 Claude 模型跨架構移植至 AMD MI300 系列晶片僅需 3 天即可完成相容調整。",
+          "該成果展現開源編譯技術（如 Triton）與框架抽象化的成熟，大幅降低對輝達特定 CUDA 軟體棧的依賴。",
+          "多晶片相容策略將使企業顧客在晶片採購上擁有更高談判籌碼，帶動非輝達晶片陣營擴大市佔。"
+        ],
+        "analysis": "軟體跨晶片移植成本的顯著下降，正在鬆動 CUDA 長期建立的市場壁壘，未來晶片競爭將回歸硬體本身性價比與能源效率的直接較量。",
+        "url": "https://technews.tw/2026/11/23/how-much-of-a-threat-is-anthropics-multi-chip-strategy-to-nvidia/"
+      },
+      {
+        "category": "政策法規與資安隱私",
+        "source": "科技新報 AI",
+        "title": "美國 AI 政策轉向嚴管，川普政府擬推動大模型發布前強制審查機制",
+        "bullets": [
+          "川普政府正擬定最新 AI 管制架構，預計要求前沿 AI 模型在正式向大眾或商業發布前必須通過官方審查。",
+          "監管重點聚焦於模型潛在的國安風險、關鍵基礎設施防護以及自主代理（Agents）的濫用防禦。",
+          "該政策標誌著美國 AI 監管哲學從先前的「自由放任倡導」重大轉向「嚴格事先把關」。"
+        ],
+        "analysis": "事前審查機制的導入將大幅拉長前沿模型的上線週期與合規成本，各大 AI 巨頭未來的技術迭代節奏與商業化佈局勢必隨之調整。",
+        "url": "https://technews.tw/2026/11/23/america-hits-the-brakes-on-ai/"
+      },
+      {
+        "category": "政策法規與資安隱私",
+        "source": "科技新報 AI",
+        "title": "Amazon 資安團隊警訊：駭客出動自主 AI 代理「Cairn」，11 分鐘內攻陷大學伺服器",
+        "bullets": [
+          "Amazon 資安團隊揭露疑似具備中國背景的駭客組織，利用自主 AI 代理「Cairn」進行全自動化網路攻擊。",
+          "該 AI 代理能在無人工干預下，僅耗時 11 分鐘即完成發現零時差漏洞至成功入侵伺服器的全流程。",
+          "這是業界首度證實自主 AI 代理被大規模用於高速自動化網路滲透的真實案例。"
+        ],
+        "analysis": "武器化 AI 代理的出現使得防禦陣營傳統的響應機制防不勝防，推進「AI 對抗 AI」的自動化資安防禦體系升級已成為全球企業的當務之急。",
+        "url": "https://infosecu.technews.tw/2026/11/23/chinese-hackers-leverage-ai-agents-launch-automated-attacks/"
+      }
+    ]
+  }
+]
