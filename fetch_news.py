@@ -433,17 +433,17 @@ def fetch_historical_pool(date_list: list[str]) -> list[dict[str, Any]]:
             full_q = urllib.parse.quote(f"{site['query']} after:{after_str} before:{before_str}")
             gnews_url = f"https://news.google.com/rss/search?q={full_q}&{site['locale']}"
             parsed = fetch_feed_raw(gnews_url, f"GNews/{site['name']}")
-            if parsed is None:
-                continue
-            add_batch(
-                extract_articles_from_parsed(
-                    parsed,
-                    site["name"],
-                    pool_start_utc,
-                    pool_end_utc,
-                    is_gnews=True,
+            if parsed is not None:
+                add_batch(
+                    extract_articles_from_parsed(
+                        parsed,
+                        site["name"],
+                        pool_start_utc,
+                        pool_end_utc,
+                        is_gnews=True,
+                    )
                 )
-            )
+            time.sleep(1.2)
         chunk_start = chunk_end + timedelta(days=1)
 
     print(f"歷史文章池預載完成，共彙整 {len(pool)} 則去重候選文章。")
@@ -662,7 +662,13 @@ def generate_structured_with_fallback(
             except Exception as exc:
                 last_error = exc
                 err_msg = str(exc)
+                short_err = err_msg.replace("\n", " ")[:220]
                 is_not_found = "404" in err_msg or "NOT_FOUND" in err_msg
+                is_zero_or_daily_quota = (
+                    "limit: 0" in err_msg
+                    or "PerDay" in err_msg
+                    or "requests per day" in err_msg
+                )
                 is_transient = any(
                     code in err_msg
                     for code in (
@@ -677,19 +683,26 @@ def generate_structured_with_fallback(
                         "Timeout",
                     )
                 )
-                if is_not_found:
-                    print(f"[警告] 模型 {model_id} 不可用，切換下一個備援模型...", file=sys.stderr)
+                if is_not_found or is_zero_or_daily_quota:
+                    print(
+                        f"[警告] 模型 {model_id} 無法使用或達每日配額（{short_err}），切換下一個備援模型...",
+                        file=sys.stderr,
+                    )
                     return None
                 if is_transient and attempt < max_attempts_per_model:
-                    wait_seconds = 4 * attempt
+                    retry_match = re.search(r"retryDelay['\"]?:\s*['\"]?(\d+)s", err_msg)
+                    wait_seconds = min(int(retry_match.group(1)) + 2, 65) if retry_match else 6 * attempt
                     print(
-                        f"[警告] {model_id} 暫時忙碌，將於 {wait_seconds} 秒後重試...",
+                        f"[警告] {model_id} 暫時受限（{short_err}），將於 {wait_seconds} 秒後重試...",
                         file=sys.stderr,
                     )
                     time.sleep(wait_seconds)
                     continue
                 if is_transient:
-                    print(f"[警告] {model_id} 持續忙碌，切換至下一個備援模型...", file=sys.stderr)
+                    print(
+                        f"[警告] {model_id} 持續忙碌（{short_err}），切換至下一個備援模型...",
+                        file=sys.stderr,
+                    )
                     return None
                 raise
         return None
@@ -971,10 +984,12 @@ def main() -> int:
     if raw_dates:
         date_list = expand_date_spec(raw_dates)
         pooled = fetch_historical_pool(date_list)
-        for d in date_list:
+        for idx, d in enumerate(date_list):
             code = process_single_date(client, target_date_str=d, pooled_articles=pooled)
             if code != 0:
                 return code
+            if idx < len(date_list) - 1:
+                time.sleep(10)
 
     if raw_relink:
         relink_list = expand_date_spec(raw_relink)
