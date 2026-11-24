@@ -1144,12 +1144,16 @@ def generate_sitemap(
 
 
 def rebuild_site_assets(archive: list[dict[str, Any]] | None = None) -> None:
-    """同步重建 feed.xml 與 sitemap.xml。"""
+    """同步重建 sitemap.xml（RSS 訂閱功能目前預設關閉，可透過 ENABLE_RSS=true 重新開啟）。"""
     data = archive if archive is not None else load_archive(ARCHIVE_PATH)
     site_url = os.environ.get("SITE_URL", SITE_URL).strip().rstrip("/") or SITE_URL
-    generate_rss_feed(data, site_url=site_url, path=FEED_PATH)
     generate_sitemap(data, site_url=site_url, path=SITEMAP_PATH)
-    print(f"已更新 {FEED_PATH.name} 與 {SITEMAP_PATH.name}（共涵蓋 {len(data)} 天存檔）。")
+    enable_rss = os.environ.get("ENABLE_RSS", "").strip().lower() in ("1", "true", "yes")
+    if enable_rss:
+        generate_rss_feed(data, site_url=site_url, path=FEED_PATH)
+        print(f"已更新 {FEED_PATH.name} 與 {SITEMAP_PATH.name}（共涵蓋 {len(data)} 天存檔）。")
+    else:
+        print(f"已更新 {SITEMAP_PATH.name}（共涵蓋 {len(data)} 天存檔）。")
 
 
 def _post_json(url: str, payload: dict[str, Any], label: str) -> None:

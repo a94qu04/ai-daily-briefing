@@ -24,7 +24,7 @@ on:
         required: false
         default: false
       build_assets_only:
-        description: "選填：僅重新產出 feed.xml 與 sitemap.xml（不呼叫 Gemini API）"
+        description: "選填：僅重新產出 sitemap.xml（不呼叫 Gemini API）"
         type: boolean
         required: false
         default: false
@@ -75,17 +75,17 @@ jobs:
             python fetch_news.py
           fi
 
-      - name: Commit and push updated archive and feeds
+      - name: Commit and push updated archive and sitemap
         if: always()
         run: |
           git config user.name "github-actions[bot]"
           git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
-          git add archive.json feed.xml sitemap.xml 2>/dev/null || true
+          git add archive.json sitemap.xml 2>/dev/null || true
           if git diff --staged --quiet; then
-            echo "archive.json / feed.xml / sitemap.xml 無變更，略過 commit。"
+            echo "archive.json / sitemap.xml 無變更，略過 commit。"
           else
             TODAY_TW=$(TZ="Asia/Taipei" date +"%Y-%m-%d")
-            git commit -m "chore: 更新每日 AI 新聞簡報與訂閱檔 (${TODAY_TW})"
+            git commit -m "chore: 更新每日 AI 新聞簡報與索引檔 (${TODAY_TW})"
             git pull --rebase --autostash origin "${{ github.ref_name }}"
             git push
           fi
