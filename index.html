@@ -168,11 +168,11 @@
     .topbar-inner {
       max-width: 1120px;
       margin: 0 auto;
-      padding: 14px 20px;
+      padding: 12px 20px;
       display: flex;
       align-items: center;
       justify-content: space-between;
-      gap: 16px;
+      gap: 10px;
       flex-wrap: wrap;
     }
 
@@ -181,8 +181,13 @@
       align-items: center;
       gap: 12px;
       min-width: 0;
+      margin-right: auto;
       text-decoration: none;
       color: inherit;
+    }
+
+    .brand-text {
+      min-width: 0;
     }
 
     .brand-icon {
@@ -212,11 +217,11 @@
       color: var(--text-muted);
     }
 
-    .topbar-controls {
-      display: flex;
+    .topbar-actions {
+      display: inline-flex;
       align-items: center;
-      gap: 10px;
-      flex-wrap: wrap;
+      gap: 8px;
+      flex-shrink: 0;
     }
 
     /* 日期切換控制列 */
@@ -1129,25 +1134,71 @@
       }
     }
 
-    @media (max-width: 600px) {
+    @media (max-width: 680px) {
       .topbar-inner {
-        padding: 12px 14px;
+        padding: 10px 14px;
+        gap: 8px;
       }
 
-      .topbar-controls {
+      /* 第一排：左側品牌 + 右側「重新整理／深淺色切換」緊湊對齊 */
+      .brand {
+        order: 1;
+        flex: 1;
+        margin-right: 0;
+        gap: 10px;
+      }
+
+      .brand-icon {
+        width: 34px;
+        height: 34px;
+        border-radius: 10px;
+        font-size: 0.88rem;
+      }
+
+      .brand-text h1 {
+        font-size: 1rem;
+      }
+
+      .brand-text p {
+        font-size: 0.72rem;
+        white-space: nowrap;
+        overflow: hidden;
+        text-overflow: ellipsis;
+      }
+
+      .topbar-actions {
+        order: 2;
+        gap: 6px;
+      }
+
+      .icon-btn {
+        width: 34px;
+        height: 34px;
+        border-radius: 10px;
+      }
+
+      .icon-btn svg {
+        width: 16px;
+        height: 16px;
+      }
+
+      /* 第二排：日期切換條獨佔滿版寬度，避免擠壓換成第三排 */
+      .date-nav {
+        order: 3;
         width: 100%;
         justify-content: space-between;
+        padding: 3px;
       }
 
-      .date-nav {
-        flex: 1;
-        justify-content: space-between;
+      .nav-btn {
+        padding: 5px 8px;
       }
 
       .date-select {
         flex: 1;
         min-width: 0;
         text-overflow: ellipsis;
+        padding: 5px 26px 5px 10px;
       }
 
       .nav-btn span {
@@ -1155,11 +1206,20 @@
       }
 
       .container {
-        padding: 18px 14px 48px;
+        padding: 14px 14px 48px;
+      }
+
+      .day-header {
+        margin-bottom: 12px;
+      }
+
+      .day-meta {
+        font-size: 0.8rem;
       }
 
       .tools-row {
         gap: 8px;
+        margin-bottom: 10px;
       }
 
       .search-box {
@@ -1177,7 +1237,7 @@
         -webkit-overflow-scrolling: touch;
         scrollbar-width: none;
         padding-bottom: 4px;
-        margin-bottom: 18px;
+        margin-bottom: 14px;
       }
 
       .filter-bar::-webkit-scrollbar {
@@ -1193,7 +1253,7 @@
       }
 
       .day-title {
-        font-size: 1.32rem;
+        font-size: 1.28rem;
       }
 
       .card-action-btn .action-label {
@@ -1217,27 +1277,27 @@
         </div>
       </a>
 
-      <div class="topbar-controls">
-        <nav class="date-nav" aria-label="歷史日期切換">
-          <button id="prevDayBtn" class="nav-btn" type="button" title="查看前一天（較舊，快捷鍵 ←）" disabled>
-            <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
-              <polyline points="15 18 9 12 15 6"></polyline>
-            </svg>
-            <span>前一天</span>
-          </button>
+      <nav class="date-nav" aria-label="歷史日期切換">
+        <button id="prevDayBtn" class="nav-btn" type="button" title="查看前一天（較舊，快捷鍵 ←）" disabled>
+          <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
+            <polyline points="15 18 9 12 15 6"></polyline>
+          </svg>
+          <span>前一天</span>
+        </button>
 
-          <select id="dateSelect" class="date-select" aria-label="選擇簡報日期" disabled>
-            <option>載入中…</option>
-          </select>
+        <select id="dateSelect" class="date-select" aria-label="選擇簡報日期" disabled>
+          <option>載入中…</option>
+        </select>
 
-          <button id="nextDayBtn" class="nav-btn" type="button" title="查看後一天（較新，快捷鍵 →）" disabled>
-            <span>後一天</span>
-            <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
-              <polyline points="9 18 15 12 9 6"></polyline>
-            </svg>
-          </button>
-        </nav>
+        <button id="nextDayBtn" class="nav-btn" type="button" title="查看後一天（較新，快捷鍵 →）" disabled>
+          <span>後一天</span>
+          <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
+            <polyline points="9 18 15 12 9 6"></polyline>
+          </svg>
+        </button>
+      </nav>
 
+      <div class="topbar-actions">
         <button id="refreshBtn" class="icon-btn" type="button" aria-label="重新整理最新簡報" title="重新整理最新簡報">
           <svg width="17" height="17" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.1" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
             <polyline points="23 4 23 10 17 10"></polyline>
@@ -2066,8 +2126,8 @@
         el.dayTitle.textContent = `${formatDateLabel(day.date)} AI 每日簡報`;
         const updatedAt = formatGeneratedTime(day.generated_at);
         el.dayMeta.textContent = updatedAt
-          ? `共精選 ${items.length} 則重點新聞 · 更新時間（台灣時間）：${updatedAt}`
-          : `共精選 ${items.length} 則重點新聞`;
+          ? `共 ${items.length} 則精選 · 更新：${updatedAt} (UTC+8)`
+          : `共 ${items.length} 則精選新聞`;
         document.title =
           state.currentIndex === 0
             ? SITE_BASE_TITLE
