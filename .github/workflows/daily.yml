@@ -2,8 +2,8 @@ name: Daily AI News Briefing
 
 on:
   schedule:
-    # 每天 UTC 02:00（台灣時間早上 10:00）自動執行
-    - cron: "0 2 * * *"
+    # 每天 UTC 02:13（台灣時間早上 10:13）自動執行，避開整點尖峰延遲
+    - cron: "13 2 * * *"
   workflow_dispatch:
     inputs:
       target_dates:
@@ -23,9 +23,18 @@ on:
         type: boolean
         required: false
         default: false
+      build_assets_only:
+        description: "選填：僅重新產出 feed.xml 與 sitemap.xml（不呼叫 Gemini API）"
+        type: boolean
+        required: false
+        default: false
 
 permissions:
   contents: write
+
+concurrency:
+  group: daily-ai-briefing
+  cancel-in-progress: false
 
 jobs:
   update-briefing:
@@ -39,31 +48,44 @@ jobs:
         uses: actions/setup-python@v5
         with:
           python-version: "3.11"
+          cache: "pip"
 
       - name: Install dependencies
         run: |
           python -m pip install --upgrade pip
-          pip install feedparser google-genai pydantic
+          pip install -r requirements.txt
 
       - name: Fetch and summarize daily AI news
         env:
           GEMINI_API_KEY: ${{ secrets.GEMINI_API_KEY }}
+          SITE_URL: ${{ vars.SITE_URL || format('https://{0}.github.io/{1}', github.repository_owner, github.event.repository.name) }}
           TARGET_DATES: ${{ inputs.target_dates }}
           RELINK_DATES: ${{ inputs.relink_dates }}
           BATCH_DAYS: ${{ inputs.batch_days }}
           SKIP_EXISTING: ${{ inputs.skip_existing }}
-        run: python fetch_news.py
+          DISCORD_WEBHOOK_URL: ${{ secrets.DISCORD_WEBHOOK_URL }}
+          SLACK_WEBHOOK_URL: ${{ secrets.SLACK_WEBHOOK_URL }}
+          TELEGRAM_BOT_TOKEN: ${{ secrets.TELEGRAM_BOT_TOKEN }}
+          TELEGRAM_CHAT_ID: ${{ secrets.TELEGRAM_CHAT_ID }}
+          NOTIFY_WEBHOOK_URL: ${{ secrets.NOTIFY_WEBHOOK_URL }}
+        run: |
+          if [ "${{ inputs.build_assets_only }}" = "true" ]; then
+            python fetch_news.py --build-assets
+          else
+            python fetch_news.py
+          fi
 
-      - name: Commit and push updated archive.json
+      - name: Commit and push updated archive and feeds
         if: always()
         run: |
           git config user.name "github-actions[bot]"
           git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
-          git add archive.json
+          git add archive.json feed.xml sitemap.xml 2>/dev/null || true
           if git diff --staged --quiet; then
-            echo "archive.json 無變更，略過 commit。"
+            echo "archive.json / feed.xml / sitemap.xml 無變更，略過 commit。"
           else
             TODAY_TW=$(TZ="Asia/Taipei" date +"%Y-%m-%d")
-            git commit -m "chore: 更新每日 AI 新聞簡報 (${TODAY_TW})"
+            git commit -m "chore: 更新每日 AI 新聞簡報與訂閱檔 (${TODAY_TW})"
+            git pull --rebase --autostash origin "${{ github.ref_name }}"
             git push
           fi

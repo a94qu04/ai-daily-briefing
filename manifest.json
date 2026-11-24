@@ -1,0 +1,31 @@
+{
+  "name": "AI Daily Briefing｜每日 AI 科技簡報",
+  "short_name": "AI 每日簡報",
+  "description": "每日自動彙整國內外重點 AI 科技新聞，以繁體中文呈現核心重點與商業技術影響分析。",
+  "lang": "zh-Hant-TW",
+  "start_url": "./",
+  "scope": "./",
+  "display": "standalone",
+  "background_color": "#f6f7fb",
+  "theme_color": "#2563eb",
+  "icons": [
+    {
+      "src": "./favicon.svg",
+      "sizes": "any",
+      "type": "image/svg+xml",
+      "purpose": "any"
+    },
+    {
+      "src": "./icon-192.png",
+      "sizes": "192x192",
+      "type": "image/png",
+      "purpose": "any maskable"
+    },
+    {
+      "src": "./icon-512.png",
+      "sizes": "512x512",
+      "type": "image/png",
+      "purpose": "any maskable"
+    }
+  ]
+}

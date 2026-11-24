@@ -16,6 +16,7 @@ from __future__ import annotations
 
 import argparse
 import calendar
+import email.utils
 import html
 import json
 import os
@@ -30,6 +31,7 @@ from datetime import datetime, timedelta, timezone
 from enum import Enum
 from pathlib import Path
 from typing import Any
+from xml.sax.saxutils import escape as xml_escape
 
 import feedparser
 from google import genai
@@ -113,7 +115,14 @@ _DISABLED_MODELS: set[str] = set()
 
 BASE_DIR = Path(__file__).resolve().parent
 ARCHIVE_PATH = BASE_DIR / "archive.json"
+FEED_PATH = BASE_DIR / "feed.xml"
+SITEMAP_PATH = BASE_DIR / "sitemap.xml"
 ENV_PATH = BASE_DIR / ".env"
+
+SITE_URL = os.environ.get(
+    "SITE_URL", "https://a94qu04.github.io/ai-daily-briefing"
+).rstrip("/")
+RSS_MAX_DAYS = 14
 
 USER_AGENT = (
     "Mozilla/5.0 (Windows NT 10.0; Win64; x64) "
@@ -864,6 +873,7 @@ def relink_existing_dates_batch(client: genai.Client, target_dates: list[str]) -
         json.dumps(archive, ensure_ascii=False, indent=2) + "\n",
         encoding="utf-8",
     )
+    rebuild_site_assets(archive)
     return 0
 
 
@@ -974,7 +984,278 @@ def update_archive(
         json.dumps(updated, ensure_ascii=False, indent=2) + "\n",
         encoding="utf-8",
     )
+    rebuild_site_assets(updated)
     return updated
+
+
+def _parse_iso_or_date_tw(generated_at: str | None, date_str: str) -> datetime:
+    """解析 generated_at ISO 時間字串，若缺失則回退為該日期台灣時間 10:00。"""
+    if generated_at:
+        try:
+            dt = datetime.fromisoformat(generated_at)
+            if dt.tzinfo is None:
+                dt = dt.replace(tzinfo=TAIWAN_TZ)
+            return dt
+        except ValueError:
+            pass
+    try:
+        return datetime.strptime(date_str, "%Y-%m-%d").replace(
+            hour=10, minute=0, tzinfo=TAIWAN_TZ
+        )
+    except ValueError:
+        return datetime.now(TAIWAN_TZ)
+
+
+def generate_rss_feed(
+    archive: list[dict[str, Any]],
+    site_url: str = SITE_URL,
+    path: Path = FEED_PATH,
+) -> None:
+    """根據 archive.json 產出標準 RSS 2.0 訂閱檔（feed.xml）。"""
+    base_url = site_url.rstrip("/")
+    now_rfc = email.utils.format_datetime(datetime.now(TAIWAN_TZ))
+    if archive:
+        latest_dt = _parse_iso_or_date_tw(
+            archive[0].get("generated_at"), str(archive[0].get("date", ""))
+        )
+        last_build = email.utils.format_datetime(latest_dt)
+    else:
+        last_build = now_rfc
+
+    lines: list[str] = [
+        '<?xml version="1.0" encoding="UTF-8"?>',
+        '<rss version="2.0" xmlns:atom="http://www.w3.org/2005/Atom">',
+        "  <channel>",
+        "    <title>AI Daily Briefing｜每日 AI 科技簡報</title>",
+        f"    <link>{xml_escape(base_url)}/</link>",
+        "    <description>每日自動彙整國內外重點 AI 科技新聞，以台灣繁體中文呈現核心重點、商業技術影響分析與 60 天前情脈絡。</description>",
+        "    <language>zh-Hant-TW</language>",
+        f"    <lastBuildDate>{xml_escape(last_build)}</lastBuildDate>",
+        f'    <atom:link href="{xml_escape(base_url)}/feed.xml" rel="self" type="application/rss+xml" />',
+        "    <image>",
+        f"      <url>{xml_escape(base_url)}/icon-192.png</url>",
+        "      <title>AI Daily Briefing｜每日 AI 科技簡報</title>",
+        f"      <link>{xml_escape(base_url)}/</link>",
+        "    </image>",
+    ]
+
+    for day in archive[:RSS_MAX_DAYS]:
+        if not isinstance(day, dict):
+            continue
+        date_str = str(day.get("date", "")).strip()
+        if not date_str:
+            continue
+        pub_dt = _parse_iso_or_date_tw(day.get("generated_at"), date_str)
+        pub_rfc = email.utils.format_datetime(pub_dt)
+        items = day.get("items") or []
+
+        for idx, item in enumerate(items, start=1):
+            if not isinstance(item, dict):
+                continue
+            title = str(item.get("title", "")).strip()
+            if not title:
+                continue
+            category = str(item.get("category", "AI 簡報")).strip()
+            source = str(item.get("source", "")).strip()
+            analysis = str(item.get("analysis", "")).strip()
+            orig_url = str(item.get("url", "")).strip()
+            bullets = item.get("bullets") or []
+
+            deep_link = f"{base_url}/?date={urllib.parse.quote(date_str)}&item={idx}"
+            desc_parts: list[str] = []
+            if bullets:
+                li_html = "".join(f"<li>{html.escape(str(b))}</li>" for b in bullets)
+                desc_parts.append(f"<ul>{li_html}</ul>")
+            if analysis:
+                desc_parts.append(
+                    f"<p><strong>關鍵影響分析：</strong>{html.escape(analysis)}</p>"
+                )
+            meta_bits: list[str] = []
+            if source:
+                meta_bits.append(f"來源：{html.escape(source)}")
+            if orig_url.startswith(("http://", "https://")):
+                meta_bits.append(
+                    f'<a href="{html.escape(orig_url, quote=True)}">閱讀原始報導</a>'
+                )
+            if meta_bits:
+                desc_parts.append(f"<p>{' ｜ '.join(meta_bits)}</p>")
+
+            lines.extend(
+                [
+                    "    <item>",
+                    f"      <title>{xml_escape(f'[{date_str}｜{category}] {title}')}</title>",
+                    f"      <link>{xml_escape(deep_link)}</link>",
+                    f'      <guid isPermaLink="true">{xml_escape(deep_link)}</guid>',
+                    f"      <category>{xml_escape(category)}</category>",
+                    f"      <pubDate>{xml_escape(pub_rfc)}</pubDate>",
+                    f"      <description>{xml_escape(''.join(desc_parts))}</description>",
+                    "    </item>",
+                ]
+            )
+
+    lines.extend(["  </channel>", "</rss>", ""])
+    path.write_text("\n".join(lines), encoding="utf-8")
+
+
+def generate_sitemap(
+    archive: list[dict[str, Any]],
+    site_url: str = SITE_URL,
+    path: Path = SITEMAP_PATH,
+) -> None:
+    """根據 archive.json 產出搜尋引擎索引檔（sitemap.xml）。"""
+    base_url = site_url.rstrip("/")
+    latest_date = (
+        str(archive[0].get("date", "")).strip()
+        if archive and isinstance(archive[0], dict)
+        else datetime.now(TAIWAN_TZ).strftime("%Y-%m-%d")
+    )
+
+    lines: list[str] = [
+        '<?xml version="1.0" encoding="UTF-8"?>',
+        '<urlset xmlns="http://www.sitemaps.org/schemas/sitemap/0.9">',
+        "  <url>",
+        f"    <loc>{xml_escape(base_url)}/</loc>",
+        f"    <lastmod>{xml_escape(latest_date)}</lastmod>",
+        "    <changefreq>daily</changefreq>",
+        "    <priority>1.0</priority>",
+        "  </url>",
+    ]
+
+    for day in archive:
+        if not isinstance(day, dict):
+            continue
+        date_str = str(day.get("date", "")).strip()
+        if not date_str:
+            continue
+        day_url = f"{base_url}/?date={urllib.parse.quote(date_str)}"
+        lines.extend(
+            [
+                "  <url>",
+                f"    <loc>{xml_escape(day_url)}</loc>",
+                f"    <lastmod>{xml_escape(date_str)}</lastmod>",
+                "    <changefreq>monthly</changefreq>",
+                "    <priority>0.8</priority>",
+                "  </url>",
+            ]
+        )
+
+    lines.extend(["</urlset>", ""])
+    path.write_text("\n".join(lines), encoding="utf-8")
+
+
+def rebuild_site_assets(archive: list[dict[str, Any]] | None = None) -> None:
+    """同步重建 feed.xml 與 sitemap.xml。"""
+    data = archive if archive is not None else load_archive(ARCHIVE_PATH)
+    site_url = os.environ.get("SITE_URL", SITE_URL).strip().rstrip("/") or SITE_URL
+    generate_rss_feed(data, site_url=site_url, path=FEED_PATH)
+    generate_sitemap(data, site_url=site_url, path=SITEMAP_PATH)
+    print(f"已更新 {FEED_PATH.name} 與 {SITEMAP_PATH.name}（共涵蓋 {len(data)} 天存檔）。")
+
+
+def _post_json(url: str, payload: dict[str, Any], label: str) -> None:
+    """以標準函式庫發送 JSON POST（失敗僅列印警告，不中斷主流程）。"""
+    body = json.dumps(payload, ensure_ascii=False).encode("utf-8")
+    req = urllib.request.Request(
+        url,
+        data=body,
+        headers={
+            "Content-Type": "application/json; charset=utf-8",
+            "User-Agent": USER_AGENT,
+        },
+        method="POST",
+    )
+    try:
+        with urllib.request.urlopen(
+            req, timeout=HTTP_TIMEOUT_SECONDS, context=get_ssl_context()
+        ) as resp:
+            print(f"[通知] {label} 推播成功（HTTP {resp.status}）。")
+    except (urllib.error.URLError, TimeoutError, OSError) as exc:
+        print(f"[警告] {label} 推播失敗：{exc}", file=sys.stderr)
+
+
+def send_webhook_notifications(day_record: dict[str, Any]) -> None:
+    """若有設定 Webhook / Telegram 環境變數，自動推播當日 AI 簡報摘要。"""
+    site_url = os.environ.get("SITE_URL", SITE_URL).strip().rstrip("/") or SITE_URL
+    date_str = str(day_record.get("date", "")).strip()
+    items = day_record.get("items") or []
+    if not date_str or not items:
+        return
+
+    day_link = f"{site_url}/?date={urllib.parse.quote(date_str)}"
+
+    # 1. Discord Webhook
+    discord_url = os.environ.get("DISCORD_WEBHOOK_URL", "").strip()
+    if discord_url:
+        desc_lines = [
+            f"{idx}. **[{it.get('category', '')}]** [{it.get('title', '')}]({site_url}/?date={date_str}&item={idx})"
+            for idx, it in enumerate(items[:10], start=1)
+        ]
+        discord_payload = {
+            "username": "AI Daily Briefing",
+            "embeds": [
+                {
+                    "title": f"📰 {date_str} 每日 AI 科技簡報（共 {len(items)} 則）",
+                    "url": day_link,
+                    "description": "\n".join(desc_lines)[:4000],
+                    "color": 0x2563EB,
+                    "footer": {"text": "AI Daily Briefing · 每日台灣時間自動彙整"},
+                }
+            ],
+        }
+        _post_json(discord_url, discord_payload, "Discord")
+
+    # 2. Slack Webhook
+    slack_url = os.environ.get("SLACK_WEBHOOK_URL", "").strip()
+    if slack_url:
+        slack_lines = [f"*📰 {date_str} 每日 AI 科技簡報（共 {len(items)} 則）*"]
+        for idx, it in enumerate(items[:10], start=1):
+            item_url = f"{site_url}/?date={date_str}&item={idx}"
+            slack_lines.append(
+                f"{idx}. `[{it.get('category', '')}]` <{item_url}|{it.get('title', '')}>"
+            )
+        slack_lines.append(f"\n👉 <{day_link}|查看完整簡報與前情脈絡>")
+        _post_json(slack_url, {"text": "\n".join(slack_lines)}, "Slack")
+
+    # 3. Telegram Bot
+    tg_token = os.environ.get("TELEGRAM_BOT_TOKEN", "").strip()
+    tg_chat_id = os.environ.get("TELEGRAM_CHAT_ID", "").strip()
+    if tg_token and tg_chat_id:
+        tg_lines = [
+            f"<b>📰 {html.escape(date_str)} 每日 AI 科技簡報（共 {len(items)} 則）</b>",
+            "",
+        ]
+        for idx, it in enumerate(items[:10], start=1):
+            item_url = f"{site_url}/?date={date_str}&item={idx}"
+            cat = html.escape(str(it.get("category", "")))
+            title = html.escape(str(it.get("title", "")))
+            tg_lines.append(f'{idx}. [{cat}] <a href="{html.escape(item_url, quote=True)}">{title}</a>')
+        tg_lines.append(f'\n👉 <a href="{html.escape(day_link, quote=True)}">開啟完整簡報網頁</a>')
+        tg_api = f"https://api.telegram.org/bot{tg_token}/sendMessage"
+        _post_json(
+            tg_api,
+            {
+                "chat_id": tg_chat_id,
+                "text": "\n".join(tg_lines),
+                "parse_mode": "HTML",
+                "disable_web_page_preview": True,
+            },
+            "Telegram",
+        )
+
+    # 4. 自訂通用 Webhook（可串接 Make / n8n / LINE Messaging API 中繼）
+    generic_url = os.environ.get("NOTIFY_WEBHOOK_URL", "").strip()
+    if generic_url:
+        _post_json(
+            generic_url,
+            {
+                "date": date_str,
+                "generated_at": day_record.get("generated_at", ""),
+                "site_url": day_link,
+                "count": len(items),
+                "items": items,
+            },
+            "通用 Webhook",
+        )
 
 
 def get_existing_urls_except(target_date_str: str) -> set[str]:
@@ -1041,7 +1322,8 @@ def process_single_date(
     else:
         effective_date = now_tw.strftime("%Y-%m-%d")
         print(f"=== 每日 AI 新聞簡報產生器（台灣日期：{effective_date}） ===")
-        articles = fetch_recent_articles()
+        exclude_urls = get_existing_urls_except(effective_date)
+        articles = fetch_recent_articles(exclude_urls=exclude_urls)
 
     if not articles:
         print(f"[警告] 日期 {effective_date} 未抓取到任何 RSS 文章，略過。", file=sys.stderr)
@@ -1063,6 +1345,16 @@ def process_single_date(
         f"完成！已精選 {len(briefing.items)} 則新聞（其中 {linked_count} 則附帶前情提要脈絡）"
         f"寫入 {ARCHIVE_PATH.name}（日期：{effective_date}），目前共保存 {len(updated_archive)} 天歷史紀錄。"
     )
+    should_notify = target_date_str is None or (
+        os.environ.get("FORCE_NOTIFY", "").strip().lower() in ("1", "true", "yes")
+    )
+    if should_notify:
+        today_record = next(
+            (e for e in updated_archive if isinstance(e, dict) and e.get("date") == effective_date),
+            None,
+        )
+        if today_record is not None:
+            send_webhook_notifications(today_record)
     return 0
 
 
@@ -1093,7 +1385,16 @@ def main() -> int:
         action="store_true",
         help="選填：回補日期時自動略過 archive.json 中已存在的日期",
     )
+    parser.add_argument(
+        "--build-assets",
+        action="store_true",
+        help="僅依據既有 archive.json 重新產出 feed.xml 與 sitemap.xml（不呼叫 Gemini API）",
+    )
     args = parser.parse_args()
+
+    if args.build_assets:
+        rebuild_site_assets()
+        return 0
 
     try:
         client = create_gemini_client()

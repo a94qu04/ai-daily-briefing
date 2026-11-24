@@ -4,7 +4,37 @@
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
   <title>AI Daily Briefing｜每日 AI 科技簡報</title>
-  <meta name="description" content="每日自動彙整國內外重點 AI 科技新聞，以繁體中文呈現核心重點與商業技術影響分析。" />
+  <meta name="description" content="每日自動彙整國內外重點 AI 科技新聞，以台灣繁體中文呈現核心重點、商業技術影響分析與 60 天前情脈絡。" />
+  <link rel="canonical" href="https://a94qu04.github.io/ai-daily-briefing/" />
+
+  <!-- Favicon 與 PWA 設定 -->
+  <link rel="icon" type="image/svg+xml" href="./favicon.svg" />
+  <link rel="icon" type="image/png" sizes="192x192" href="./icon-192.png" />
+  <link rel="apple-touch-icon" sizes="180x180" href="./apple-touch-icon.png" />
+  <link rel="manifest" href="./manifest.json" />
+  <link rel="alternate" type="application/rss+xml" title="AI Daily Briefing｜每日 AI 科技簡報 RSS" href="./feed.xml" />
+  <meta name="theme-color" id="themeColorMeta" content="#f6f7fb" />
+  <meta name="apple-mobile-web-app-capable" content="yes" />
+  <meta name="apple-mobile-web-app-title" content="AI 每日簡報" />
+
+  <!-- Open Graph / 社群分享預覽卡片 -->
+  <meta property="og:type" content="website" />
+  <meta property="og:locale" content="zh_TW" />
+  <meta property="og:site_name" content="AI Daily Briefing" />
+  <meta property="og:title" content="AI Daily Briefing｜每日 AI 科技簡報" />
+  <meta property="og:description" content="每日自動彙整國內外重點 AI 科技新聞，以台灣繁體中文呈現核心重點、商業技術影響分析與 60 天前情脈絡。" />
+  <meta property="og:url" content="https://a94qu04.github.io/ai-daily-briefing/" />
+  <meta property="og:image" content="https://a94qu04.github.io/ai-daily-briefing/og-image.png" />
+  <meta property="og:image:width" content="1200" />
+  <meta property="og:image:height" content="630" />
+  <meta property="og:image:alt" content="AI Daily Briefing 每日 AI 科技精選簡報" />
+
+  <!-- Twitter / X Card -->
+  <meta name="twitter:card" content="summary_large_image" />
+  <meta name="twitter:title" content="AI Daily Briefing｜每日 AI 科技簡報" />
+  <meta name="twitter:description" content="每日自動彙整國內外重點 AI 科技新聞，以台灣繁體中文呈現核心重點、商業技術影響分析與 60 天前情脈絡。" />
+  <meta name="twitter:image" content="https://a94qu04.github.io/ai-daily-briefing/og-image.png" />
+
   <link rel="preconnect" href="https://fonts.googleapis.com" />
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
   <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&family=Noto+Sans+TC:wght@400;500;600;700&display=swap" rel="stylesheet" />
@@ -16,6 +46,10 @@
       const systemDark = window.matchMedia && window.matchMedia("(prefers-color-scheme: dark)").matches;
       const theme = savedTheme === "light" || savedTheme === "dark" ? savedTheme : (systemDark ? "dark" : "light");
       document.documentElement.setAttribute("data-theme", theme);
+      const themeMeta = document.getElementById("themeColorMeta");
+      if (themeMeta) {
+        themeMeta.setAttribute("content", theme === "dark" ? "#0b0f17" : "#f6f7fb");
+      }
     })();
   </script>
 
@@ -32,6 +66,8 @@
       --text-muted: #6b7280;
       --accent: #2563eb;
       --accent-soft: rgba(37, 99, 235, 0.1);
+      --bookmark: #d97706;
+      --bookmark-soft: rgba(217, 119, 6, 0.12);
       --quote-bg: #f8fafc;
       --quote-border: #3b82f6;
       --shadow-sm: 0 1px 2px rgba(15, 23, 42, 0.05);
@@ -70,6 +106,8 @@
       --text-muted: #8b9ab5;
       --accent: #60a5fa;
       --accent-soft: rgba(96, 165, 250, 0.15);
+      --bookmark: #fbbf24;
+      --bookmark-soft: rgba(251, 191, 36, 0.16);
       --quote-bg: #0f1522;
       --quote-border: #60a5fa;
       --shadow-sm: 0 1px 2px rgba(0, 0, 0, 0.3);
@@ -136,6 +174,8 @@
       align-items: center;
       gap: 12px;
       min-width: 0;
+      text-decoration: none;
+      color: inherit;
     }
 
     .brand-icon {
@@ -237,8 +277,8 @@
       border-color: var(--accent);
     }
 
-    /* 深淺色主題切換按鈕 */
-    .theme-btn {
+    /* 頂部圖示按鈕（RSS / 主題切換） */
+    .icon-btn {
       width: 38px;
       height: 38px;
       border-radius: var(--radius-md);
@@ -248,17 +288,19 @@
       display: grid;
       place-items: center;
       cursor: pointer;
+      text-decoration: none;
       box-shadow: var(--shadow-sm);
-      transition: background-color 0.15s ease, border-color 0.15s ease, transform 0.15s ease;
+      transition: background-color 0.15s ease, border-color 0.15s ease, transform 0.15s ease, color 0.15s ease;
       flex-shrink: 0;
     }
 
-    .theme-btn:hover {
+    .icon-btn:hover {
       background: var(--bg-subtle);
       border-color: var(--border-strong);
+      color: var(--accent);
     }
 
-    .theme-btn:active {
+    .icon-btn:active {
       transform: scale(0.96);
     }
 
@@ -276,7 +318,7 @@
       justify-content: space-between;
       gap: 16px;
       flex-wrap: wrap;
-      margin-bottom: 20px;
+      margin-bottom: 18px;
     }
 
     .day-title {
@@ -290,6 +332,143 @@
       font-size: 0.85rem;
       color: var(--text-muted);
       margin-top: 4px;
+    }
+
+    /* 搜尋與收藏工具列 */
+    .tools-row {
+      display: flex;
+      align-items: center;
+      gap: 10px;
+      flex-wrap: wrap;
+      margin-bottom: 14px;
+    }
+
+    .search-box {
+      position: relative;
+      flex: 1;
+      min-width: 240px;
+      display: flex;
+      align-items: center;
+    }
+
+    .search-icon {
+      position: absolute;
+      left: 13px;
+      color: var(--text-muted);
+      pointer-events: none;
+      display: flex;
+      align-items: center;
+    }
+
+    .search-input {
+      width: 100%;
+      height: 40px;
+      border: 1px solid var(--border);
+      background: var(--surface);
+      color: var(--text);
+      font-family: inherit;
+      font-size: 0.88rem;
+      padding: 0 68px 0 38px;
+      border-radius: var(--radius-md);
+      box-shadow: var(--shadow-sm);
+      transition: border-color 0.15s ease, box-shadow 0.15s ease;
+    }
+
+    .search-input::placeholder {
+      color: var(--text-muted);
+    }
+
+    .search-input:focus {
+      outline: none;
+      border-color: var(--accent);
+      box-shadow: 0 0 0 3px var(--accent-soft);
+    }
+
+    .search-kbd {
+      position: absolute;
+      right: 12px;
+      font-size: 0.72rem;
+      font-weight: 600;
+      color: var(--text-muted);
+      background: var(--bg-subtle);
+      border: 1px solid var(--border);
+      border-radius: 5px;
+      padding: 1px 6px;
+      pointer-events: none;
+    }
+
+    .search-input:focus ~ .search-kbd,
+    .search-box.has-value .search-kbd {
+      display: none;
+    }
+
+    .search-clear-btn {
+      position: absolute;
+      right: 8px;
+      width: 26px;
+      height: 26px;
+      border: none;
+      border-radius: 7px;
+      background: var(--bg-subtle);
+      color: var(--text-muted);
+      cursor: pointer;
+      display: none;
+      place-items: center;
+      font-size: 0.85rem;
+      transition: background-color 0.15s ease, color 0.15s ease;
+    }
+
+    .search-box.has-value .search-clear-btn {
+      display: grid;
+    }
+
+    .search-clear-btn:hover {
+      background: var(--border);
+      color: var(--text);
+    }
+
+    .bookmark-toggle-btn {
+      height: 40px;
+      display: inline-flex;
+      align-items: center;
+      gap: 7px;
+      border: 1px solid var(--border);
+      background: var(--surface);
+      color: var(--text-secondary);
+      font-family: inherit;
+      font-size: 0.85rem;
+      font-weight: 600;
+      padding: 0 14px;
+      border-radius: var(--radius-md);
+      cursor: pointer;
+      box-shadow: var(--shadow-sm);
+      transition: all 0.15s ease;
+      white-space: nowrap;
+    }
+
+    .bookmark-toggle-btn:hover {
+      border-color: var(--border-strong);
+      color: var(--text);
+    }
+
+    .bookmark-toggle-btn.active {
+      background: var(--bookmark-soft);
+      border-color: var(--bookmark);
+      color: var(--bookmark);
+    }
+
+    .bookmark-count {
+      font-size: 0.75rem;
+      font-weight: 700;
+      padding: 1px 7px;
+      border-radius: var(--radius-pill);
+      background: var(--bg-subtle);
+      color: var(--text-muted);
+    }
+
+    .bookmark-toggle-btn.active .bookmark-count {
+      background: var(--bookmark);
+      color: #ffffff;
     }
 
     /* 分類篩選列 */
@@ -316,6 +495,7 @@
       cursor: pointer;
       transition: all 0.16s ease;
       box-shadow: var(--shadow-sm);
+      white-space: nowrap;
     }
 
     .filter-chip:hover {
@@ -383,8 +563,33 @@
       display: flex;
       align-items: center;
       justify-content: space-between;
-      gap: 10px;
+      gap: 8px;
       flex-wrap: wrap;
+    }
+
+    .card-meta-right {
+      display: inline-flex;
+      align-items: center;
+      gap: 6px;
+      flex-wrap: wrap;
+    }
+
+    .card-date-badge {
+      border: 1px solid color-mix(in srgb, var(--accent) 32%, transparent);
+      background: var(--accent-soft);
+      color: var(--accent);
+      font-family: inherit;
+      font-size: 0.75rem;
+      font-weight: 700;
+      padding: 3px 9px;
+      border-radius: 6px;
+      cursor: pointer;
+      transition: background-color 0.15s ease, color 0.15s ease;
+    }
+
+    .card-date-badge:hover {
+      background: var(--accent);
+      color: #ffffff;
     }
 
     .category-badge {
@@ -486,6 +691,18 @@
       color: var(--accent);
       letter-spacing: 0.04em;
       margin-bottom: 4px;
+    }
+
+    /* 搜尋關鍵字高亮 */
+    mark.search-hl {
+      background: rgba(250, 204, 21, 0.35);
+      color: inherit;
+      padding: 0 2px;
+      border-radius: 3px;
+    }
+
+    [data-theme="dark"] mark.search-hl {
+      background: rgba(250, 204, 21, 0.28);
     }
 
     /* 相關舊聞脈絡區塊 */
@@ -619,7 +836,7 @@
       border: 1px solid color-mix(in srgb, var(--accent) 35%, transparent);
       border-radius: var(--radius-md);
       padding: 10px 14px;
-      margin-bottom: 18px;
+      margin-bottom: 16px;
       font-size: 0.86rem;
       color: var(--text);
     }
@@ -671,12 +888,49 @@
       color: var(--text);
     }
 
+    /* 卡片底部操作列 */
     .card-footer {
       display: flex;
       align-items: center;
-      justify-content: flex-end;
-      padding-top: 4px;
+      justify-content: space-between;
+      gap: 10px;
+      flex-wrap: wrap;
+      padding-top: 8px;
       border-top: 1px solid var(--border);
+    }
+
+    .card-actions {
+      display: inline-flex;
+      align-items: center;
+      gap: 6px;
+    }
+
+    .card-action-btn {
+      display: inline-flex;
+      align-items: center;
+      gap: 5px;
+      border: 1px solid var(--border);
+      background: transparent;
+      color: var(--text-muted);
+      font-family: inherit;
+      font-size: 0.78rem;
+      font-weight: 500;
+      padding: 5px 9px;
+      border-radius: 8px;
+      cursor: pointer;
+      transition: background-color 0.15s ease, color 0.15s ease, border-color 0.15s ease;
+    }
+
+    .card-action-btn:hover {
+      background: var(--bg-subtle);
+      border-color: var(--border-strong);
+      color: var(--text);
+    }
+
+    .card-action-btn.saved {
+      background: var(--bookmark-soft);
+      border-color: color-mix(in srgb, var(--bookmark) 45%, transparent);
+      color: var(--bookmark);
     }
 
     .source-link {
@@ -689,6 +943,7 @@
       text-decoration: none;
       padding: 4px 2px;
       transition: opacity 0.15s ease;
+      margin-left: auto;
     }
 
     .source-link:hover {
@@ -743,6 +998,49 @@
       color: var(--text-muted);
     }
 
+    .footer-links {
+      display: inline-flex;
+      align-items: center;
+      gap: 14px;
+      flex-wrap: wrap;
+    }
+
+    .footer-links a {
+      color: var(--text-muted);
+      text-decoration: none;
+      transition: color 0.15s ease;
+    }
+
+    .footer-links a:hover {
+      color: var(--accent);
+      text-decoration: underline;
+    }
+
+    /* 輕量 Toast 提示 */
+    .toast {
+      position: fixed;
+      left: 50%;
+      bottom: 24px;
+      transform: translate(-50%, 16px);
+      background: var(--text);
+      color: var(--bg);
+      font-size: 0.84rem;
+      font-weight: 600;
+      padding: 10px 16px;
+      border-radius: var(--radius-pill);
+      box-shadow: var(--shadow-md);
+      opacity: 0;
+      pointer-events: none;
+      transition: opacity 0.2s ease, transform 0.2s ease;
+      z-index: 100;
+      white-space: nowrap;
+    }
+
+    .toast.show {
+      opacity: 1;
+      transform: translate(-50%, 0);
+    }
+
     @media (max-width: 860px) {
       .news-grid {
         grid-template-columns: 1fr;
@@ -775,7 +1073,37 @@
       }
 
       .container {
-        padding: 20px 14px 48px;
+        padding: 18px 14px 48px;
+      }
+
+      .tools-row {
+        gap: 8px;
+      }
+
+      .search-box {
+        min-width: 0;
+      }
+
+      .search-kbd {
+        display: none;
+      }
+
+      /* 手機版分類列改為單排橫向滑動 */
+      .filter-bar {
+        flex-wrap: nowrap;
+        overflow-x: auto;
+        -webkit-overflow-scrolling: touch;
+        scrollbar-width: none;
+        padding-bottom: 4px;
+        margin-bottom: 18px;
+      }
+
+      .filter-bar::-webkit-scrollbar {
+        display: none;
+      }
+
+      .filter-chip {
+        flex-shrink: 0;
       }
 
       .news-card {
@@ -785,23 +1113,31 @@
       .day-title {
         font-size: 1.32rem;
       }
+
+      .card-action-btn .action-label {
+        display: none;
+      }
+
+      .kbd-hint {
+        display: none;
+      }
     }
   </style>
 </head>
 <body>
   <header class="topbar">
     <div class="topbar-inner">
-      <div class="brand">
+      <a href="./" class="brand" id="brandLink" title="回到最新一日簡報">
         <div class="brand-icon" aria-hidden="true">AI</div>
         <div class="brand-text">
           <h1>AI Daily Briefing</h1>
           <p>每日國內外 AI 科技新聞精選簡報</p>
         </div>
-      </div>
+      </a>
 
       <div class="topbar-controls">
         <nav class="date-nav" aria-label="歷史日期切換">
-          <button id="prevDayBtn" class="nav-btn" type="button" title="查看前一天（較舊）" disabled>
+          <button id="prevDayBtn" class="nav-btn" type="button" title="查看前一天（較舊，快捷鍵 ←）" disabled>
             <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
               <polyline points="15 18 9 12 15 6"></polyline>
             </svg>
@@ -812,7 +1148,7 @@
             <option>載入中…</option>
           </select>
 
-          <button id="nextDayBtn" class="nav-btn" type="button" title="查看後一天（較新）" disabled>
+          <button id="nextDayBtn" class="nav-btn" type="button" title="查看後一天（較新，快捷鍵 →）" disabled>
             <span>後一天</span>
             <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
               <polyline points="9 18 15 12 9 6"></polyline>
@@ -820,7 +1156,15 @@
           </button>
         </nav>
 
-        <button id="themeToggleBtn" class="theme-btn" type="button" aria-label="切換深淺色主題" title="切換深淺色主題">
+        <a href="./feed.xml" class="icon-btn" target="_blank" rel="noopener noreferrer" title="訂閱 RSS Feed" aria-label="訂閱 RSS Feed">
+          <svg width="17" height="17" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.1" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
+            <path d="M4 11a9 9 0 0 1 9 9"></path>
+            <path d="M4 4a16 16 0 0 1 16 16"></path>
+            <circle cx="5" cy="19" r="1.5"></circle>
+          </svg>
+        </a>
+
+        <button id="themeToggleBtn" class="icon-btn" type="button" aria-label="切換深淺色主題" title="切換深淺色主題">
           <span id="themeIcon" aria-hidden="true"></span>
         </button>
       </div>
@@ -843,6 +1187,35 @@
       </div>
     </section>
 
+    <section class="tools-row" id="toolsRow" hidden>
+      <div class="search-box" id="searchBox">
+        <span class="search-icon" aria-hidden="true">
+          <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round">
+            <circle cx="11" cy="11" r="8"></circle>
+            <line x1="21" y1="21" x2="16.65" y2="16.65"></line>
+          </svg>
+        </span>
+        <input
+          id="searchInput"
+          class="search-input"
+          type="search"
+          placeholder="跨 60 天搜尋新聞標題、重點或分析（如 Nvidia、Claude、代理…）"
+          aria-label="跨 60 天全文搜尋"
+          autocomplete="off"
+        />
+        <span class="search-kbd" aria-hidden="true">/</span>
+        <button id="searchClearBtn" class="search-clear-btn" type="button" title="清除搜尋" aria-label="清除搜尋">✕</button>
+      </div>
+
+      <button id="bookmarkToggleBtn" class="bookmark-toggle-btn" type="button" aria-pressed="false" title="查看已收藏的新聞">
+        <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
+          <path d="M19 21l-7-5-7 5V5a2 2 0 0 1 2-2h10a2 2 0 0 1 2 2z"></path>
+        </svg>
+        <span>我的收藏</span>
+        <span class="bookmark-count" id="bookmarkCount">0</span>
+      </button>
+    </section>
+
     <section class="filter-bar" id="filterBar" aria-label="新聞領域分類篩選" hidden></section>
 
     <section id="contentArea" aria-live="polite">
@@ -855,8 +1228,14 @@
 
   <footer class="site-footer">
     <span>AI Daily Briefing · 由 Gemini Flash 每日自動彙整（台灣時間 UTC+8）</span>
-    <span>最多保留最近 60 天歷史存檔</span>
+    <div class="footer-links">
+      <span class="kbd-hint">快捷鍵：← → 切換日期 · / 搜尋</span>
+      <a href="./feed.xml" target="_blank" rel="noopener noreferrer">RSS 訂閱</a>
+      <span>最多保留 60 天存檔</span>
+    </div>
   </footer>
+
+  <div id="toast" class="toast" role="status" aria-live="polite"></div>
 
   <script>
     const CATEGORIES = [
@@ -869,20 +1248,28 @@
     const CATEGORY_MAP = Object.fromEntries(CATEGORIES.map((c) => [c.key, c]));
     const WEEKDAYS = ["日", "一", "二", "三", "四", "五", "六"];
     const THEME_STORAGE_KEY = "ai-briefing-theme";
+    const BOOKMARK_STORAGE_KEY = "ai-briefing-bookmarks";
+    const SITE_BASE_TITLE = "AI Daily Briefing｜每日 AI 科技簡報";
 
     const state = {
       archive: [],
       currentIndex: 0,
       selectedCategory: "ALL",
+      searchQuery: "",
+      bookmarksOnly: false,
+      bookmarks: new Set(),
       jumpStack: [],
+      pendingHighlightItem: null,
     };
 
     const el = {
+      brandLink: document.getElementById("brandLink"),
       prevDayBtn: document.getElementById("prevDayBtn"),
       nextDayBtn: document.getElementById("nextDayBtn"),
       dateSelect: document.getElementById("dateSelect"),
       themeToggleBtn: document.getElementById("themeToggleBtn"),
       themeIcon: document.getElementById("themeIcon"),
+      themeColorMeta: document.getElementById("themeColorMeta"),
       dayHeader: document.getElementById("dayHeader"),
       dayTitle: document.getElementById("dayTitle"),
       dayMeta: document.getElementById("dayMeta"),
@@ -890,9 +1277,27 @@
       jumpBannerText: document.getElementById("jumpBannerText"),
       jumpBackBtn: document.getElementById("jumpBackBtn"),
       jumpCloseBtn: document.getElementById("jumpCloseBtn"),
+      toolsRow: document.getElementById("toolsRow"),
+      searchBox: document.getElementById("searchBox"),
+      searchInput: document.getElementById("searchInput"),
+      searchClearBtn: document.getElementById("searchClearBtn"),
+      bookmarkToggleBtn: document.getElementById("bookmarkToggleBtn"),
+      bookmarkCount: document.getElementById("bookmarkCount"),
       filterBar: document.getElementById("filterBar"),
       contentArea: document.getElementById("contentArea"),
+      toast: document.getElementById("toast"),
     };
+
+    /* ================= Toast 提示 ================= */
+    let toastTimer = null;
+    function showToast(message) {
+      el.toast.textContent = message;
+      el.toast.classList.add("show");
+      if (toastTimer) clearTimeout(toastTimer);
+      toastTimer = setTimeout(() => {
+        el.toast.classList.remove("show");
+      }, 2200);
+    }
 
     /* ================= 主題切換 ================= */
     const SUN_SVG = `
@@ -919,6 +1324,9 @@
       const nextLabel = theme === "dark" ? "切換為淺色主題" : "切換為深色主題";
       el.themeToggleBtn.setAttribute("aria-label", nextLabel);
       el.themeToggleBtn.setAttribute("title", nextLabel);
+      if (el.themeColorMeta) {
+        el.themeColorMeta.setAttribute("content", theme === "dark" ? "#0b0f17" : "#f6f7fb");
+      }
       if (persist) {
         localStorage.setItem(THEME_STORAGE_KEY, theme);
       }
@@ -933,13 +1341,58 @@
         applyTheme(now === "dark" ? "light" : "dark", true);
       });
 
-      // 若使用者尚未手動指定主題，動態跟隨系統主題變更
       const mediaQuery = window.matchMedia("(prefers-color-scheme: dark)");
       mediaQuery.addEventListener("change", (event) => {
         if (!localStorage.getItem(THEME_STORAGE_KEY)) {
           applyTheme(event.matches ? "dark" : "light", false);
         }
       });
+    }
+
+    /* ================= 書籤管理（localStorage） ================= */
+    function makeBookmarkKey(dateStr, item) {
+      const urlPart = String(item?.url || "").trim();
+      if (urlPart) return `${dateStr}::${urlPart}`;
+      return `${dateStr}::${String(item?.title || "").trim()}`;
+    }
+
+    function loadBookmarks() {
+      try {
+        const raw = localStorage.getItem(BOOKMARK_STORAGE_KEY);
+        const parsed = raw ? JSON.parse(raw) : [];
+        if (Array.isArray(parsed)) {
+          state.bookmarks = new Set(parsed.filter((k) => typeof k === "string"));
+        }
+      } catch (_) {
+        state.bookmarks = new Set();
+      }
+      updateBookmarkUI();
+    }
+
+    function saveBookmarks() {
+      try {
+        localStorage.setItem(BOOKMARK_STORAGE_KEY, JSON.stringify([...state.bookmarks]));
+      } catch (_) {}
+      updateBookmarkUI();
+    }
+
+    function countAvailableBookmarks() {
+      if (!state.archive.length) return state.bookmarks.size;
+      let count = 0;
+      state.archive.forEach((day) => {
+        (day.items || []).forEach((item) => {
+          if (state.bookmarks.has(makeBookmarkKey(day.date, item))) {
+            count += 1;
+          }
+        });
+      });
+      return count;
+    }
+
+    function updateBookmarkUI() {
+      el.bookmarkCount.textContent = String(countAvailableBookmarks());
+      el.bookmarkToggleBtn.classList.toggle("active", state.bookmarksOnly);
+      el.bookmarkToggleBtn.setAttribute("aria-pressed", state.bookmarksOnly ? "true" : "false");
     }
 
     /* ================= 工具函式 ================= */
@@ -950,6 +1403,20 @@
         .replace(/>/g, "&gt;")
         .replace(/"/g, "&quot;")
         .replace(/'/g, "&#39;");
+    }
+
+    function escapeRegExp(str) {
+      return str.replace(/[.*+?^${}()|[\]\\]/g, "\\$&");
+    }
+
+    function highlightText(rawText, query) {
+      const safe = escapeHtml(rawText);
+      const q = (query || "").trim();
+      if (!q) return safe;
+      const tokens = q.split(/\s+/).filter(Boolean).slice(0, 6);
+      if (!tokens.length) return safe;
+      const pattern = new RegExp(`(${tokens.map(escapeRegExp).join("|")})`, "gi");
+      return safe.replace(pattern, '<mark class="search-hl">$1</mark>');
     }
 
     function formatDateLabel(dateStr) {
@@ -985,6 +1452,151 @@
       return "#";
     }
 
+    function buildDeepLink(dateStr, itemIdxOneBased = null) {
+      const url = new URL(window.location.href);
+      url.search = "";
+      url.hash = "";
+      if (dateStr) {
+        url.searchParams.set("date", dateStr);
+      }
+      if (itemIdxOneBased !== null && itemIdxOneBased >= 1) {
+        url.searchParams.set("item", String(itemIdxOneBased));
+      }
+      return url.toString();
+    }
+
+    async function copyToClipboard(text) {
+      if (navigator.clipboard && window.isSecureContext) {
+        await navigator.clipboard.writeText(text);
+        return;
+      }
+      const textarea = document.createElement("textarea");
+      textarea.value = text;
+      textarea.style.position = "fixed";
+      textarea.style.opacity = "0";
+      document.body.appendChild(textarea);
+      textarea.select();
+      document.execCommand("copy");
+      document.body.removeChild(textarea);
+    }
+
+    /* ================= URL 參數同步（Deep Linking） ================= */
+    function readStateFromUrl() {
+      const params = new URLSearchParams(window.location.search);
+      const dateParam = (params.get("date") || "").trim();
+      const catParam = (params.get("cat") || "").trim();
+      const qParam = (params.get("q") || "").trim();
+      const savedParam = params.get("saved") === "1";
+      let itemParam = Number(params.get("item"));
+      if (!Number.isInteger(itemParam) || itemParam < 1) {
+        const hashMatch = /^#item-(\d+)$/.exec(window.location.hash || "");
+        itemParam = hashMatch ? Number(hashMatch[1]) : null;
+      }
+
+      if (dateParam && state.archive.length) {
+        const foundIdx = state.archive.findIndex((d) => d.date === dateParam);
+        state.currentIndex = foundIdx !== -1 ? foundIdx : 0;
+      } else {
+        state.currentIndex = 0;
+      }
+
+      state.selectedCategory = CATEGORY_MAP[catParam] ? catParam : "ALL";
+      state.searchQuery = qParam;
+      state.bookmarksOnly = savedParam;
+      state.pendingHighlightItem = itemParam;
+
+      el.searchInput.value = state.searchQuery;
+      el.searchBox.classList.toggle("has-value", Boolean(state.searchQuery));
+    }
+
+    function syncUrl({ replace = false, itemNumber = null } = {}) {
+      if (window.location.protocol === "file:" || !state.archive.length) return;
+      const url = new URL(window.location.href);
+      url.search = "";
+      url.hash = "";
+
+      const day = state.archive[state.currentIndex];
+      const isDefaultLatest = state.currentIndex === 0 && !state.searchQuery && !state.bookmarksOnly;
+
+      if (state.bookmarksOnly) {
+        url.searchParams.set("saved", "1");
+      } else if (state.searchQuery) {
+        url.searchParams.set("q", state.searchQuery);
+      } else if (day && (!isDefaultLatest || itemNumber)) {
+        url.searchParams.set("date", day.date);
+      }
+
+      if (state.selectedCategory !== "ALL") {
+        url.searchParams.set("cat", state.selectedCategory);
+      }
+
+      if (itemNumber && !state.searchQuery && !state.bookmarksOnly) {
+        url.searchParams.set("item", String(itemNumber));
+      }
+
+      const nextUrl = url.pathname + url.search;
+      const currentUrl = window.location.pathname + window.location.search;
+      if (nextUrl === currentUrl) return;
+
+      const historyState = {
+        date: day?.date || "",
+        cat: state.selectedCategory,
+        q: state.searchQuery,
+        saved: state.bookmarksOnly,
+        item: itemNumber,
+      };
+      if (replace) {
+        window.history.replaceState(historyState, "", nextUrl);
+      } else {
+        window.history.pushState(historyState, "", nextUrl);
+      }
+    }
+
+    /* ================= 跨日檢索與資料彙整 ================= */
+    function isCrossDayMode() {
+      return Boolean(state.searchQuery.trim()) || state.bookmarksOnly;
+    }
+
+    function getActiveEntries() {
+      const q = state.searchQuery.trim().toLowerCase();
+      const tokens = q ? q.split(/\s+/).filter(Boolean) : [];
+
+      if (isCrossDayMode()) {
+        const matched = [];
+        state.archive.forEach((day) => {
+          const items = Array.isArray(day.items) ? day.items : [];
+          items.forEach((item, idx) => {
+            const key = makeBookmarkKey(day.date, item);
+            if (state.bookmarksOnly && !state.bookmarks.has(key)) {
+              return;
+            }
+            if (tokens.length > 0) {
+              const haystack = [
+                day.date,
+                item.category,
+                item.source,
+                item.title,
+                ...(Array.isArray(item.bullets) ? item.bullets : []),
+                item.analysis,
+              ]
+                .join(" ")
+                .toLowerCase();
+              if (!tokens.every((tk) => haystack.includes(tk))) {
+                return;
+              }
+            }
+            matched.push({ date: day.date, item, idx });
+          });
+        });
+        return matched;
+      }
+
+      const day = state.archive[state.currentIndex];
+      if (!day) return [];
+      const items = Array.isArray(day.items) ? day.items : [];
+      return items.map((item, idx) => ({ date: day.date, item, idx }));
+    }
+
     /* ================= 畫面渲染 ================= */
     function populateDateSelect() {
       el.dateSelect.innerHTML = "";
@@ -1000,17 +1612,17 @@
 
     function updateDateControls() {
       el.dateSelect.value = String(state.currentIndex);
-      // archive[0] 為最新一天；索引越大代表越舊的日期
-      el.prevDayBtn.disabled = state.currentIndex >= state.archive.length - 1;
-      el.nextDayBtn.disabled = state.currentIndex <= 0;
+      const disabledCross = isCrossDayMode();
+      el.prevDayBtn.disabled = disabledCross || state.currentIndex >= state.archive.length - 1;
+      el.nextDayBtn.disabled = disabledCross || state.currentIndex <= 0;
     }
 
-    function renderFilterBar(items) {
-      const counts = { ALL: items.length };
+    function renderFilterBar(entries) {
+      const counts = { ALL: entries.length };
       CATEGORIES.forEach((c) => {
         counts[c.key] = 0;
       });
-      items.forEach((item) => {
+      entries.forEach(({ item }) => {
         if (Object.prototype.hasOwnProperty.call(counts, item.category)) {
           counts[item.category] += 1;
         }
@@ -1091,46 +1703,69 @@
         </div>`;
     }
 
-    function renderCards(items) {
-      const visibleEntries = items
-        .map((item, idx) => ({ item, idx }))
-        .filter(({ item }) =>
-          state.selectedCategory === "ALL" ? true : item.category === state.selectedCategory
-        );
+    function renderCards(entries) {
+      const crossDay = isCrossDayMode();
+      const query = state.searchQuery.trim();
+      const visibleEntries = entries.filter(({ item }) =>
+        state.selectedCategory === "ALL" ? true : item.category === state.selectedCategory
+      );
 
       if (visibleEntries.length === 0) {
-        el.contentArea.innerHTML = `
-          <div class="state-box">
-            <h2>此分類當日無精選新聞</h2>
-            <p>請切換其他領域標籤，或點選「全部」瀏覽當日完整 AI 簡報。</p>
-          </div>`;
+        if (state.bookmarksOnly && entries.length === 0) {
+          el.contentArea.innerHTML = `
+            <div class="state-box">
+              <h2>目前還沒有收藏的新聞</h2>
+              <p>瀏覽每日簡報時，點擊卡片左下角的「收藏」按鈕即可將重要報導存下來方便隨時查閱。</p>
+            </div>`;
+        } else if (query) {
+          el.contentArea.innerHTML = `
+            <div class="state-box">
+              <h2>找不到符合「${escapeHtml(query)}」的新聞</h2>
+              <p>請嘗試更換其他關鍵字，或點選「全部」分類查看其他領域的存檔內容。</p>
+            </div>`;
+        } else {
+          el.contentArea.innerHTML = `
+            <div class="state-box">
+              <h2>此分類當日無精選新聞</h2>
+              <p>請切換其他領域標籤，或點選「全部」瀏覽當日完整 AI 簡報。</p>
+            </div>`;
+        }
         return;
       }
 
       const cardsHtml = visibleEntries
-        .map(({ item, idx }) => {
+        .map(({ date, item, idx }) => {
           const catMeta = CATEGORY_MAP[item.category] || {
             cls: "cat-model",
             dot: "dot-model",
           };
           const bullets = Array.isArray(item.bullets) ? item.bullets : [];
           const bulletsHtml = bullets
-            .map((point) => `<li>${escapeHtml(point)}</li>`)
+            .map((point) => `<li>${highlightText(point, query)}</li>`)
             .join("");
           const safeHref = sanitizeUrl(item.url);
           const relatedHtml = renderRelatedSection(item.related_history);
+          const bmKey = makeBookmarkKey(date, item);
+          const isSaved = state.bookmarks.has(bmKey);
 
           return `
-            <article class="news-card" data-item-idx="${idx}">
+            <article class="news-card" data-date="${escapeHtml(date)}" data-item-idx="${idx}">
               <div class="card-meta">
                 <span class="category-badge ${catMeta.cls}">
                   <span class="dot" aria-hidden="true"></span>
                   ${escapeHtml(item.category || "未分類")}
                 </span>
-                <span class="source-tag">${escapeHtml(item.source || "未知來源")}</span>
+                <div class="card-meta-right">
+                  ${
+                    crossDay
+                      ? `<button type="button" class="card-date-badge" data-open-date="${escapeHtml(date)}" data-open-item="${idx + 1}" title="前往 ${escapeHtml(date)} 完整簡報">${escapeHtml(date)}</button>`
+                      : ""
+                  }
+                  <span class="source-tag">${highlightText(item.source || "未知來源", query)}</span>
+                </div>
               </div>
 
-              <h3 class="card-title">${escapeHtml(item.title)}</h3>
+              <h3 class="card-title">${highlightText(item.title, query)}</h3>
 
               <ul class="bullet-list">
                 ${bulletsHtml}
@@ -1138,12 +1773,62 @@
 
               <blockquote class="analysis-quote">
                 <span class="analysis-label">關鍵影響分析</span>
-                ${escapeHtml(item.analysis)}
+                ${highlightText(item.analysis, query)}
               </blockquote>
 
               ${relatedHtml}
 
               <div class="card-footer">
+                <div class="card-actions">
+                  <button
+                    type="button"
+                    class="card-action-btn ${isSaved ? "saved" : ""}"
+                    data-action="bookmark"
+                    data-date="${escapeHtml(date)}"
+                    data-item-idx="${idx}"
+                    title="${isSaved ? "取消收藏" : "加入收藏"}"
+                    aria-pressed="${isSaved ? "true" : "false"}"
+                  >
+                    <svg width="13" height="13" viewBox="0 0 24 24" fill="${isSaved ? "currentColor" : "none"}" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
+                      <path d="M19 21l-7-5-7 5V5a2 2 0 0 1 2-2h10a2 2 0 0 1 2 2z"></path>
+                    </svg>
+                    <span class="action-label">${isSaved ? "已收藏" : "收藏"}</span>
+                  </button>
+
+                  <button
+                    type="button"
+                    class="card-action-btn"
+                    data-action="copy"
+                    data-date="${escapeHtml(date)}"
+                    data-item-idx="${idx}"
+                    title="複製標題、重點與連結"
+                  >
+                    <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
+                      <rect x="9" y="9" width="13" height="13" rx="2" ry="2"></rect>
+                      <path d="M5 15H4a2 2 0 0 1-2-2V4a2 2 0 0 1 2-2h9a2 2 0 0 1 2 2v1"></path>
+                    </svg>
+                    <span class="action-label">複製摘要</span>
+                  </button>
+
+                  <button
+                    type="button"
+                    class="card-action-btn"
+                    data-action="share"
+                    data-date="${escapeHtml(date)}"
+                    data-item-idx="${idx}"
+                    title="複製這則簡報的專屬分享網址"
+                  >
+                    <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
+                      <circle cx="18" cy="5" r="3"></circle>
+                      <circle cx="6" cy="12" r="3"></circle>
+                      <circle cx="18" cy="19" r="3"></circle>
+                      <line x1="8.59" y1="13.51" x2="15.42" y2="17.49"></line>
+                      <line x1="15.41" y1="6.51" x2="8.59" y2="10.49"></line>
+                    </svg>
+                    <span class="action-label">分享</span>
+                  </button>
+                </div>
+
                 <a class="source-link" href="${escapeHtml(safeHref)}" target="_blank" rel="noopener noreferrer">
                   <span>閱讀原始報導</span>
                   <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
@@ -1161,7 +1846,7 @@
     }
 
     function updateJumpBanner() {
-      if (state.jumpStack.length === 0) {
+      if (state.jumpStack.length === 0 || isCrossDayMode()) {
         el.jumpBanner.hidden = true;
         return;
       }
@@ -1173,7 +1858,7 @@
     }
 
     function scrollToAndHighlightCard(itemIdx) {
-      if (itemIdx < 0) return;
+      if (itemIdx === null || itemIdx < 0) return;
       requestAnimationFrame(() => {
         const card = el.contentArea.querySelector(`.news-card[data-item-idx="${itemIdx}"]`);
         if (!card) return;
@@ -1189,7 +1874,7 @@
       if (targetIndex === -1) return;
 
       const currentDay = state.archive[state.currentIndex];
-      if (currentDay) {
+      if (currentDay && !isCrossDayMode()) {
         state.jumpStack.push({
           index: state.currentIndex,
           date: currentDay.date,
@@ -1198,10 +1883,14 @@
         });
       }
 
+      state.searchQuery = "";
+      state.bookmarksOnly = false;
+      el.searchInput.value = "";
+      el.searchBox.classList.remove("has-value");
       state.currentIndex = targetIndex;
       state.selectedCategory = "ALL";
-      renderCurrentDay();
-      updateJumpBanner();
+      updateBookmarkUI();
+      renderView();
 
       const targetItems = Array.isArray(state.archive[targetIndex].items)
         ? state.archive[targetIndex].items
@@ -1214,6 +1903,7 @@
             targetTitle.includes((it.title || "").slice(0, 12))
         );
       }
+      syncUrl({ replace: false, itemNumber: matchIdx >= 0 ? matchIdx + 1 : null });
       scrollToAndHighlightCard(matchIdx);
     }
 
@@ -1225,17 +1915,17 @@
       }
       state.currentIndex = prev.index;
       state.selectedCategory = prev.category || "ALL";
-      renderCurrentDay();
-      updateJumpBanner();
+      renderView();
+      syncUrl({ replace: false });
       requestAnimationFrame(() => {
         window.scrollTo({ top: prev.scrollY || 0, behavior: "smooth" });
       });
     }
 
-    function renderCurrentDay() {
-      const day = state.archive[state.currentIndex];
-      if (!day) {
+    function renderView() {
+      if (!state.archive.length) {
         el.dayHeader.hidden = true;
+        el.toolsRow.hidden = true;
         el.filterBar.hidden = true;
         el.contentArea.innerHTML = `
           <div class="state-box">
@@ -1246,61 +1936,202 @@
         return;
       }
 
-      const items = Array.isArray(day.items) ? day.items : [];
+      el.toolsRow.hidden = false;
       el.dayHeader.hidden = false;
-      el.dayTitle.textContent = `${formatDateLabel(day.date)} AI 每日簡報`;
 
-      const updatedAt = formatGeneratedTime(day.generated_at);
-      el.dayMeta.textContent = updatedAt
-        ? `共精選 ${items.length} 則重點新聞 · 更新時間（台灣時間）：${updatedAt}`
-        : `共精選 ${items.length} 則重點新聞`;
+      const entries = getActiveEntries();
+      const q = state.searchQuery.trim();
+
+      if (state.bookmarksOnly) {
+        el.dayTitle.textContent = q ? `我的收藏搜尋：「${q}」` : "我的收藏簡報";
+        const uniqueDays = new Set(entries.map((e) => e.date)).size;
+        el.dayMeta.textContent = `共找到 ${entries.length} 則收藏新聞（涵蓋 ${uniqueDays} 天存檔）`;
+        document.title = `我的收藏｜${SITE_BASE_TITLE}`;
+      } else if (q) {
+        el.dayTitle.textContent = `跨日搜尋：「${q}」`;
+        const uniqueDays = new Set(entries.map((e) => e.date)).size;
+        el.dayMeta.textContent = `在最近 ${state.archive.length} 天存檔中共找到 ${entries.length} 則符合的新聞（涵蓋 ${uniqueDays} 天）`;
+        document.title = `搜尋 ${q}｜${SITE_BASE_TITLE}`;
+      } else {
+        const day = state.archive[state.currentIndex];
+        const items = Array.isArray(day.items) ? day.items : [];
+        el.dayTitle.textContent = `${formatDateLabel(day.date)} AI 每日簡報`;
+        const updatedAt = formatGeneratedTime(day.generated_at);
+        el.dayMeta.textContent = updatedAt
+          ? `共精選 ${items.length} 則重點新聞 · 更新時間（台灣時間）：${updatedAt}`
+          : `共精選 ${items.length} 則重點新聞`;
+        document.title =
+          state.currentIndex === 0
+            ? SITE_BASE_TITLE
+            : `${day.date} AI 每日簡報｜AI Daily Briefing`;
+      }
 
       updateDateControls();
-      renderFilterBar(items);
-      renderCards(items);
+      updateBookmarkUI();
+      updateJumpBanner();
+      renderFilterBar(entries);
+      renderCards(entries);
+
+      if (state.pendingHighlightItem !== null && !isCrossDayMode()) {
+        const targetIdx = state.pendingHighlightItem - 1;
+        state.pendingHighlightItem = null;
+        scrollToAndHighlightCard(targetIdx);
+      }
     }
 
-    function switchDay(nextIndex) {
+    function switchDay(nextIndex, { pushHistory = true, highlightItem = null } = {}) {
       if (nextIndex < 0 || nextIndex >= state.archive.length) return;
       state.jumpStack = [];
+      state.searchQuery = "";
+      state.bookmarksOnly = false;
+      el.searchInput.value = "";
+      el.searchBox.classList.remove("has-value");
       state.currentIndex = nextIndex;
       state.selectedCategory = "ALL";
-      renderCurrentDay();
-      updateJumpBanner();
-      window.scrollTo({ top: 0, behavior: "smooth" });
+      state.pendingHighlightItem = highlightItem;
+      renderView();
+      if (pushHistory) {
+        syncUrl({ replace: false, itemNumber: highlightItem });
+      }
+      if (!highlightItem) {
+        window.scrollTo({ top: 0, behavior: "smooth" });
+      }
+    }
+
+    function findItemByDateAndIdx(dateStr, idx) {
+      const day = state.archive.find((d) => d.date === dateStr);
+      if (!day || !Array.isArray(day.items)) return null;
+      return day.items[idx] || null;
     }
 
     /* ================= 事件綁定與初始化 ================= */
     function bindEvents() {
+      el.brandLink.addEventListener("click", (event) => {
+        event.preventDefault();
+        switchDay(0, { pushHistory: true });
+      });
+
       el.dateSelect.addEventListener("change", (event) => {
-        switchDay(Number(event.target.value));
+        switchDay(Number(event.target.value), { pushHistory: true });
       });
 
       el.prevDayBtn.addEventListener("click", () => {
-        switchDay(state.currentIndex + 1);
+        switchDay(state.currentIndex + 1, { pushHistory: true });
       });
 
       el.nextDayBtn.addEventListener("click", () => {
-        switchDay(state.currentIndex - 1);
+        switchDay(state.currentIndex - 1, { pushHistory: true });
+      });
+
+      let searchTimer = null;
+      el.searchInput.addEventListener("input", () => {
+        const val = el.searchInput.value;
+        el.searchBox.classList.toggle("has-value", Boolean(val.trim()));
+        if (searchTimer) clearTimeout(searchTimer);
+        searchTimer = setTimeout(() => {
+          state.searchQuery = val.trim();
+          state.selectedCategory = "ALL";
+          renderView();
+          syncUrl({ replace: true });
+        }, 120);
+      });
+
+      el.searchClearBtn.addEventListener("click", () => {
+        el.searchInput.value = "";
+        el.searchBox.classList.remove("has-value");
+        state.searchQuery = "";
+        state.selectedCategory = "ALL";
+        renderView();
+        syncUrl({ replace: true });
+        el.searchInput.focus();
+      });
+
+      el.bookmarkToggleBtn.addEventListener("click", () => {
+        state.bookmarksOnly = !state.bookmarksOnly;
+        state.selectedCategory = "ALL";
+        renderView();
+        syncUrl({ replace: false });
       });
 
       el.filterBar.addEventListener("click", (event) => {
         const button = event.target.closest(".filter-chip");
         if (!button) return;
         state.selectedCategory = button.dataset.category || "ALL";
-        const day = state.archive[state.currentIndex];
-        const items = day && Array.isArray(day.items) ? day.items : [];
-        renderFilterBar(items);
-        renderCards(items);
+        renderView();
+        syncUrl({ replace: true });
       });
 
-      el.contentArea.addEventListener("click", (event) => {
+      el.contentArea.addEventListener("click", async (event) => {
+        // 1. 相關舊聞脈絡跳轉
         const relatedBtn = event.target.closest(".related-item-btn");
-        if (!relatedBtn || relatedBtn.disabled) return;
-        const targetDate = relatedBtn.dataset.jumpDate;
-        const targetTitle = relatedBtn.dataset.jumpTitle;
-        if (targetDate && targetTitle) {
-          jumpToRelatedStory(targetDate, targetTitle);
+        if (relatedBtn && !relatedBtn.disabled) {
+          const targetDate = relatedBtn.dataset.jumpDate;
+          const targetTitle = relatedBtn.dataset.jumpTitle;
+          if (targetDate && targetTitle) {
+            jumpToRelatedStory(targetDate, targetTitle);
+          }
+          return;
+        }
+
+        // 2. 搜尋或收藏卡片上的日期徽章跳轉
+        const dateBadge = event.target.closest(".card-date-badge");
+        if (dateBadge) {
+          const targetDate = dateBadge.dataset.openDate;
+          const targetItem = Number(dateBadge.dataset.openItem) || null;
+          const targetIndex = state.archive.findIndex((d) => d.date === targetDate);
+          if (targetIndex !== -1) {
+            switchDay(targetIndex, { pushHistory: true, highlightItem: targetItem });
+          }
+          return;
+        }
+
+        // 3. 卡片底部操作（收藏 / 複製摘要 / 分享連結）
+        const actionBtn = event.target.closest(".card-action-btn");
+        if (!actionBtn) return;
+
+        const action = actionBtn.dataset.action;
+        const dateStr = actionBtn.dataset.date;
+        const idx = Number(actionBtn.dataset.itemIdx);
+        const item = findItemByDateAndIdx(dateStr, idx);
+        if (!item) return;
+
+        if (action === "bookmark") {
+          const key = makeBookmarkKey(dateStr, item);
+          if (state.bookmarks.has(key)) {
+            state.bookmarks.delete(key);
+            showToast("已取消收藏");
+          } else {
+            state.bookmarks.add(key);
+            showToast("已加入我的收藏");
+          }
+          saveBookmarks();
+          renderView();
+        } else if (action === "copy") {
+          const bulletsText = (item.bullets || []).map((b) => `• ${b}`).join("\n");
+          const deepLink = buildDeepLink(dateStr, idx + 1);
+          const summaryText = [
+            `【${dateStr}｜${item.category}】${item.title}`,
+            bulletsText,
+            `關鍵影響分析：${item.analysis}`,
+            `原始報導：${sanitizeUrl(item.url)}`,
+            `簡報連結：${deepLink}`,
+          ]
+            .filter(Boolean)
+            .join("\n");
+          try {
+            await copyToClipboard(summaryText);
+            showToast("已複製新聞重點與連結");
+          } catch (_) {
+            showToast("複製失敗，請手動選取內容");
+          }
+        } else if (action === "share") {
+          const deepLink = buildDeepLink(dateStr, idx + 1);
+          try {
+            await copyToClipboard(deepLink);
+            showToast("已複製專屬分享網址");
+          } catch (_) {
+            showToast("複製網址失敗");
+          }
         }
       });
 
@@ -1312,12 +2143,68 @@
         state.jumpStack = [];
         updateJumpBanner();
       });
+
+      // 瀏覽器上一頁 / 下一頁同步
+      window.addEventListener("popstate", () => {
+        if (!state.archive.length) return;
+        state.jumpStack = [];
+        readStateFromUrl();
+        renderView();
+      });
+
+      // 鍵盤快捷鍵（← / → 切換日期、/ 聚焦搜尋、Esc 清除）
+      document.addEventListener("keydown", (event) => {
+        const tag = (event.target?.tagName || "").toUpperCase();
+        const isTyping = tag === "INPUT" || tag === "TEXTAREA" || tag === "SELECT" || event.target?.isContentEditable;
+
+        if (event.key === "/" && !isTyping && !event.ctrlKey && !event.metaKey && !event.altKey) {
+          event.preventDefault();
+          el.searchInput.focus();
+          el.searchInput.select();
+          return;
+        }
+
+        if (event.key === "Escape") {
+          if (document.activeElement === el.searchInput) {
+            if (el.searchInput.value) {
+              el.searchInput.value = "";
+              el.searchBox.classList.remove("has-value");
+              state.searchQuery = "";
+              renderView();
+              syncUrl({ replace: true });
+            } else {
+              el.searchInput.blur();
+            }
+          } else if (state.bookmarksOnly || state.searchQuery) {
+            state.bookmarksOnly = false;
+            state.searchQuery = "";
+            el.searchInput.value = "";
+            el.searchBox.classList.remove("has-value");
+            renderView();
+            syncUrl({ replace: false });
+          }
+          return;
+        }
+
+        if (isTyping || event.ctrlKey || event.metaKey || event.altKey || isCrossDayMode()) {
+          return;
+        }
+
+        if (event.key === "ArrowLeft" && state.currentIndex < state.archive.length - 1) {
+          event.preventDefault();
+          switchDay(state.currentIndex + 1, { pushHistory: true });
+        } else if (event.key === "ArrowRight" && state.currentIndex > 0) {
+          event.preventDefault();
+          switchDay(state.currentIndex - 1, { pushHistory: true });
+        }
+      });
     }
 
     async function loadArchive() {
       try {
-        const response = await fetch(`./archive.json?t=${Date.now()}`, {
-          cache: "no-store",
+        // 使用 HTTP 條件式快取驗證（ETag / 304），有更新立即抓新檔、未更新免重下載
+        const response = await fetch("./archive.json", {
+          cache: "no-cache",
         });
         if (!response.ok) {
           throw new Error(`HTTP ${response.status}`);
@@ -1328,13 +2215,13 @@
         }
 
         state.archive = data;
-        state.currentIndex = 0;
-        state.selectedCategory = "ALL";
         populateDateSelect();
-        renderCurrentDay();
+        readStateFromUrl();
+        renderView();
       } catch (err) {
         const isFileProtocol = window.location.protocol === "file:";
         el.dayHeader.hidden = true;
+        el.toolsRow.hidden = true;
         el.filterBar.hidden = true;
         el.dateSelect.innerHTML = "<option>無法載入</option>";
         el.contentArea.innerHTML = isFileProtocol
@@ -1354,6 +2241,7 @@
     }
 
     initTheme();
+    loadBookmarks();
     bindEvents();
     loadArchive();
   </script>

@@ -1,0 +1,4 @@
+User-agent: *
+Allow: /
+
+Sitemap: https://a94qu04.github.io/ai-daily-briefing/sitemap.xml
