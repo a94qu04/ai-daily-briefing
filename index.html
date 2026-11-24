@@ -13,7 +13,9 @@
   <link rel="apple-touch-icon" sizes="180x180" href="./apple-touch-icon.png" />
   <link rel="manifest" href="./manifest.json" />
   <meta name="theme-color" id="themeColorMeta" content="#f6f7fb" />
+  <meta name="mobile-web-app-capable" content="yes" />
   <meta name="apple-mobile-web-app-capable" content="yes" />
+  <meta name="apple-mobile-web-app-status-bar-style" content="default" />
   <meta name="apple-mobile-web-app-title" content="AI 每日簡報" />
 
   <!-- Open Graph / 社群分享預覽卡片 -->
@@ -134,6 +136,12 @@
       box-sizing: border-box;
       margin: 0;
       padding: 0;
+    }
+
+    html,
+    body {
+      max-width: 100%;
+      overflow-x: clip;
     }
 
     body {
@@ -303,6 +311,65 @@
       transform: scale(0.96);
     }
 
+    @keyframes spin360 {
+      from { transform: rotate(0deg); }
+      to { transform: rotate(360deg); }
+    }
+
+    .icon-btn.spinning svg {
+      animation: spin360 0.75s linear infinite;
+    }
+
+    /* 下拉重新整理指示列（iPhone 主畫面 PWA 專用體驗） */
+    .ptr-indicator {
+      height: 0;
+      overflow: hidden;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      gap: 8px;
+      font-size: 0.82rem;
+      font-weight: 600;
+      color: var(--text-muted);
+      background: var(--bg-subtle);
+      transition: height 0.2s ease, opacity 0.2s ease;
+      opacity: 0;
+    }
+
+    .ptr-indicator.pulling {
+      transition: none;
+    }
+
+    .ptr-indicator.visible {
+      opacity: 1;
+    }
+
+    .ptr-indicator.refreshing svg {
+      animation: spin360 0.75s linear infinite;
+      color: var(--accent);
+    }
+
+    /* 發現新版網頁提示條 */
+    .update-banner {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      gap: 12px;
+      flex-wrap: wrap;
+      background: var(--surface);
+      border: 1px solid var(--accent);
+      border-radius: var(--radius-md);
+      padding: 10px 14px;
+      margin-bottom: 16px;
+      font-size: 0.86rem;
+      color: var(--text);
+      box-shadow: var(--shadow-sm);
+    }
+
+    .update-banner[hidden] {
+      display: none;
+    }
+
     /* 主內容區 */
     .container {
       max-width: 1120px;
@@ -360,6 +427,8 @@
     }
 
     .search-input {
+      appearance: none;
+      -webkit-appearance: none;
       width: 100%;
       height: 40px;
       border: 1px solid var(--border);
@@ -367,10 +436,16 @@
       color: var(--text);
       font-family: inherit;
       font-size: 0.88rem;
-      padding: 0 68px 0 38px;
+      padding: 0 42px 0 38px;
       border-radius: var(--radius-md);
       box-shadow: var(--shadow-sm);
       transition: border-color 0.15s ease, box-shadow 0.15s ease;
+    }
+
+    .search-input::-webkit-search-cancel-button,
+    .search-input::-webkit-search-decoration {
+      -webkit-appearance: none;
+      appearance: none;
     }
 
     .search-input::placeholder {
@@ -1046,6 +1121,14 @@
       }
     }
 
+    /* 防止 iOS Safari 聚焦字體小於 16px 的表單元件時自動放大畫面 */
+    @media (max-width: 768px) {
+      .search-input,
+      .date-select {
+        font-size: 16px;
+      }
+    }
+
     @media (max-width: 600px) {
       .topbar-inner {
         padding: 12px 14px;
@@ -1155,6 +1238,14 @@
           </button>
         </nav>
 
+        <button id="refreshBtn" class="icon-btn" type="button" aria-label="重新整理最新簡報" title="重新整理最新簡報">
+          <svg width="17" height="17" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.1" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
+            <polyline points="23 4 23 10 17 10"></polyline>
+            <polyline points="1 20 1 14 7 14"></polyline>
+            <path d="M3.51 9a9 9 0 0 1 14.85-3.36L23 10M1 14l4.64 4.36A9 9 0 0 0 20.49 15"></path>
+          </svg>
+        </button>
+
         <button id="themeToggleBtn" class="icon-btn" type="button" aria-label="切換深淺色主題" title="切換深淺色主題">
           <span id="themeIcon" aria-hidden="true"></span>
         </button>
@@ -1162,7 +1253,23 @@
     </div>
   </header>
 
+  <div id="ptrIndicator" class="ptr-indicator" aria-hidden="true">
+    <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round">
+      <polyline points="23 4 23 10 17 10"></polyline>
+      <path d="M20.49 15a9 9 0 1 1-2.12-9.36L23 10"></path>
+    </svg>
+    <span id="ptrText">下拉重新整理</span>
+  </div>
+
   <main class="container">
+    <section class="update-banner" id="updateBanner" hidden aria-live="polite">
+      <span>發現新版網頁介面，重新整理即可套用最新功能。</span>
+      <div class="jump-banner-actions">
+        <button id="updateReloadBtn" class="jump-back-btn" type="button">立即更新</button>
+        <button id="updateDismissBtn" class="jump-close-btn" type="button" aria-label="稍後再說">✕</button>
+      </div>
+    </section>
+
     <section class="day-header" id="dayHeader" hidden>
       <div>
         <h2 class="day-title" id="dayTitle">—</h2>
@@ -1250,6 +1357,11 @@
       bookmarks: new Set(),
       jumpStack: [],
       pendingHighlightItem: null,
+      isRefreshing: false,
+      lastArchiveSignature: "",
+      initialPageSignature: "",
+      lastCheckedAt: 0,
+      lastCheckedTwDate: "",
     };
 
     const el = {
@@ -1257,9 +1369,15 @@
       prevDayBtn: document.getElementById("prevDayBtn"),
       nextDayBtn: document.getElementById("nextDayBtn"),
       dateSelect: document.getElementById("dateSelect"),
+      refreshBtn: document.getElementById("refreshBtn"),
       themeToggleBtn: document.getElementById("themeToggleBtn"),
       themeIcon: document.getElementById("themeIcon"),
       themeColorMeta: document.getElementById("themeColorMeta"),
+      ptrIndicator: document.getElementById("ptrIndicator"),
+      ptrText: document.getElementById("ptrText"),
+      updateBanner: document.getElementById("updateBanner"),
+      updateReloadBtn: document.getElementById("updateReloadBtn"),
+      updateDismissBtn: document.getElementById("updateDismissBtn"),
       dayHeader: document.getElementById("dayHeader"),
       dayTitle: document.getElementById("dayTitle"),
       dayMeta: document.getElementById("dayMeta"),
@@ -2134,6 +2252,33 @@
         updateJumpBanner();
       });
 
+      el.refreshBtn.addEventListener("click", () => {
+        checkForUpdates({ manual: true, force: true });
+      });
+
+      el.updateReloadBtn.addEventListener("click", () => {
+        window.location.reload();
+      });
+
+      el.updateDismissBtn.addEventListener("click", () => {
+        el.updateBanner.hidden = true;
+      });
+
+      // iPhone 主畫面 PWA 從背景切回前景時，自動檢查是否有新一天的簡報或網頁改版
+      document.addEventListener("visibilitychange", () => {
+        if (document.visibilityState === "visible") {
+          checkForUpdates({ manual: false });
+        }
+      });
+
+      window.addEventListener("pageshow", (event) => {
+        if (event.persisted) {
+          checkForUpdates({ manual: false, force: true });
+        }
+      });
+
+      initPullToRefresh();
+
       // 瀏覽器上一頁 / 下一頁同步
       window.addEventListener("popstate", () => {
         if (!state.archive.length) return;
@@ -2190,12 +2335,237 @@
       });
     }
 
+    /* ================= 自動更新與下拉重整（支援 iOS PWA） ================= */
+    const AUTO_REFRESH_COOLDOWN_MS = 3 * 60 * 1000;
+
+    function getTaiwanTodayStr() {
+      try {
+        return new Intl.DateTimeFormat("en-CA", {
+          timeZone: "Asia/Taipei",
+          year: "numeric",
+          month: "2-digit",
+          day: "2-digit",
+        }).format(new Date());
+      } catch (_) {
+        return new Date().toISOString().slice(0, 10);
+      }
+    }
+
+    function computeArchiveSignature(data) {
+      if (!Array.isArray(data) || data.length === 0) return "empty";
+      const latest = data[0] || {};
+      const totalItems = data.reduce(
+        (sum, d) => sum + (Array.isArray(d?.items) ? d.items.length : 0),
+        0
+      );
+      return `${latest.date || ""}|${latest.generated_at || ""}|${data.length}|${totalItems}`;
+    }
+
+    async function fetchPageSignature() {
+      if (window.location.protocol === "file:") return "";
+      try {
+        const res = await fetch("./index.html", {
+          method: "HEAD",
+          cache: "no-cache",
+        });
+        if (!res.ok) return "";
+        return (
+          res.headers.get("etag") ||
+          res.headers.get("last-modified") ||
+          res.headers.get("content-length") ||
+          ""
+        );
+      } catch (_) {
+        return "";
+      }
+    }
+
+    function setRefreshingUI(active) {
+      el.refreshBtn.classList.toggle("spinning", active);
+      el.refreshBtn.disabled = active;
+    }
+
+    async function checkForUpdates({ manual = false, force = false } = {}) {
+      if (state.isRefreshing || window.location.protocol === "file:") return;
+
+      const now = Date.now();
+      const twToday = getTaiwanTodayStr();
+      const dayChanged = Boolean(state.lastCheckedTwDate && twToday !== state.lastCheckedTwDate);
+      if (!manual && !force && !dayChanged && now - state.lastCheckedAt < AUTO_REFRESH_COOLDOWN_MS) {
+        return;
+      }
+
+      state.isRefreshing = true;
+      state.lastCheckedAt = now;
+      state.lastCheckedTwDate = twToday;
+      if (manual) setRefreshingUI(true);
+
+      try {
+        const [pageSig, archiveRes] = await Promise.all([
+          fetchPageSignature(),
+          fetch("./archive.json", { cache: "no-cache" }),
+        ]);
+
+        // 1. 檢查 index.html 是否已部署新版本
+        const htmlChanged = Boolean(
+          pageSig && state.initialPageSignature && pageSig !== state.initialPageSignature
+        );
+        if (!state.initialPageSignature && pageSig) {
+          state.initialPageSignature = pageSig;
+        }
+        if (htmlChanged) {
+          if (manual) {
+            showToast("偵測到新版網頁，正在重新載入…");
+            setTimeout(() => window.location.reload(), 350);
+            return;
+          }
+          el.updateBanner.hidden = false;
+        }
+
+        // 2. 檢查 archive.json 是否有最新簡報資料
+        if (archiveRes.ok) {
+          const freshData = await archiveRes.json();
+          if (Array.isArray(freshData)) {
+            const nextSig = computeArchiveSignature(freshData);
+            const dataChanged = nextSig !== state.lastArchiveSignature;
+
+            if (dataChanged) {
+              const prevDayDate = state.archive[state.currentIndex]?.date || "";
+              const wasOnLatest = state.currentIndex === 0 && !isCrossDayMode();
+
+              state.archive = freshData;
+              state.lastArchiveSignature = nextSig;
+              populateDateSelect();
+
+              if (wasOnLatest) {
+                state.currentIndex = 0;
+              } else if (prevDayDate) {
+                const preservedIdx = freshData.findIndex((d) => d.date === prevDayDate);
+                state.currentIndex = preservedIdx !== -1 ? preservedIdx : 0;
+              } else {
+                state.currentIndex = 0;
+              }
+
+              renderView();
+              const latestDate = freshData[0]?.date || "";
+              showToast(
+                latestDate
+                  ? `${manual ? "已更新至" : "已自動更新至"} ${latestDate} 最新簡報`
+                  : "簡報資料已更新"
+              );
+            } else if (manual) {
+              showToast("目前已是最新簡報");
+            }
+          }
+        } else if (manual) {
+          showToast("檢查更新失敗，請稍後再試");
+        }
+      } catch (_) {
+        if (manual) {
+          showToast("網路連線異常，暫時無法更新");
+        }
+      } finally {
+        state.isRefreshing = false;
+        if (manual) setRefreshingUI(false);
+      }
+    }
+
+    function initPullToRefresh() {
+      const THRESHOLD = 64;
+      const MAX_PULL = 96;
+      let startY = 0;
+      let startX = 0;
+      let pulling = false;
+      let pullDistance = 0;
+
+      window.addEventListener(
+        "touchstart",
+        (event) => {
+          if (state.isRefreshing || event.touches.length !== 1) return;
+          if (window.scrollY > 0) return;
+          if (event.target.closest(".filter-bar, input, select, textarea")) return;
+          startY = event.touches[0].clientY;
+          startX = event.touches[0].clientX;
+          pulling = false;
+          pullDistance = 0;
+        },
+        { passive: true }
+      );
+
+      window.addEventListener(
+        "touchmove",
+        (event) => {
+          if (state.isRefreshing || startY === 0 || event.touches.length !== 1) return;
+          if (window.scrollY > 0) {
+            startY = 0;
+            return;
+          }
+          const dy = event.touches[0].clientY - startY;
+          const dx = event.touches[0].clientX - startX;
+
+          if (!pulling) {
+            if (dy > 12 && dy > Math.abs(dx) * 1.4) {
+              pulling = true;
+              el.ptrIndicator.classList.add("pulling", "visible");
+            } else if (Math.abs(dx) > 12 || dy < -8) {
+              startY = 0;
+              return;
+            } else {
+              return;
+            }
+          }
+
+          if (dy <= 0) {
+            pullDistance = 0;
+            el.ptrIndicator.style.height = "0px";
+            return;
+          }
+
+          if (event.cancelable) event.preventDefault();
+          pullDistance = Math.min(MAX_PULL, Math.round(dy * 0.55));
+          el.ptrIndicator.style.height = `${pullDistance}px`;
+          el.ptrText.textContent = pullDistance >= THRESHOLD ? "放開立即更新" : "下拉重新整理";
+        },
+        { passive: false }
+      );
+
+      async function finishPull() {
+        if (!pulling) {
+          startY = 0;
+          return;
+        }
+        const shouldRefresh = pullDistance >= THRESHOLD;
+        pulling = false;
+        startY = 0;
+        pullDistance = 0;
+        el.ptrIndicator.classList.remove("pulling");
+
+        if (shouldRefresh) {
+          el.ptrIndicator.classList.add("refreshing");
+          el.ptrIndicator.style.height = "46px";
+          el.ptrText.textContent = "正在檢查最新簡報…";
+          await checkForUpdates({ manual: true, force: true });
+          el.ptrIndicator.classList.remove("refreshing");
+        }
+
+        el.ptrIndicator.style.height = "0px";
+        el.ptrIndicator.classList.remove("visible");
+      }
+
+      window.addEventListener("touchend", finishPull, { passive: true });
+      window.addEventListener("touchcancel", finishPull, { passive: true });
+    }
+
     async function loadArchive() {
       try {
         // 使用 HTTP 條件式快取驗證（ETag / 304），有更新立即抓新檔、未更新免重下載
-        const response = await fetch("./archive.json", {
-          cache: "no-cache",
-        });
+        const [pageSig, response] = await Promise.all([
+          fetchPageSignature(),
+          fetch("./archive.json", { cache: "no-cache" }),
+        ]);
+        if (pageSig) {
+          state.initialPageSignature = pageSig;
+        }
         if (!response.ok) {
           throw new Error(`HTTP ${response.status}`);
         }
@@ -2205,6 +2575,9 @@
         }
 
         state.archive = data;
+        state.lastArchiveSignature = computeArchiveSignature(data);
+        state.lastCheckedAt = Date.now();
+        state.lastCheckedTwDate = getTaiwanTodayStr();
         populateDateSelect();
         readStateFromUrl();
         renderView();
