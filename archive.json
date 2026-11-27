@@ -1,5 +1,146 @@
 [
   {
+    "date": "2026-11-27",
+    "generated_at": "2026-11-27T14:35:39+08:00",
+    "items": [
+      {
+        "category": "政策法規與資安隱私",
+        "source": "科技新報 AI",
+        "title": "Character.AI 破產擬拍賣 2,100 萬用戶聊天紀錄，美國 42 州檢察長聯手阻擋",
+        "bullets": [
+          "Character.AI 進入第 11 章破產程序，擬拍賣平台上超過 2,100 萬名使用者的私密對話紀錄資產。",
+          "美國 42 州檢察長聯手發起訴訟，指控拍賣用戶私密聊天紀錄嚴重侵害個人隱私權與消費權益。",
+          "檢方要求破產法庭立即禁止處分此類用戶個人資料，開創 AI 新創公司破產時數據資產處理的監管先例。"
+        ],
+        "analysis": "本案凸顯 AI 新創經營不善時，其留存的龐大用戶對話資料庫恐淪為資產清算的拍賣品，迫使監管機構建立更嚴格的 AI 資料隱私與資產處置防線。",
+        "url": "https://infosecu.technews.tw/2026/11/27/ai-company-bankruptcy-triggers-privacy-crisis/",
+        "related_history": []
+      },
+      {
+        "category": "政策法規與資安隱私",
+        "source": "科技新報 AI",
+        "title": "美國新規堵漏洞，輝達晶片買家恐禁租算力予中企",
+        "bullets": [
+          "美國政府擴大對中出口管制漏洞封鎖，要求新興雲端供應商在購買輝達晶片時，須承諾不得將算力租賃給中企。",
+          "包含 CoreWeave 等算力服務商接獲通知，若未能嚴格核實客戶最終受益人身份，將面臨輝達晶片配額取消風險。",
+          "新規直接衝擊中國科技巨頭透過海外第三方雲端平台間接取得 Blackwell 等高階 AI 算力的管道。"
+        ],
+        "analysis": "美國管制從「硬體禁售」全面延伸至「雲端租用」，迫使雲端服務商升級審查流程，國際 AI 算力供應鏈正加速去中化割裂。",
+        "url": "https://technews.tw/2026/11/27/nvidia-chip-buyers-told-to-rule-out-chinese-renters-to-purchase-gpus/",
+        "related_history": [
+          {
+            "date": "2026-11-16",
+            "title": "美國遠端存取新規防堵中國租用 AI 算力，新加坡、馬來西亞等 5 國晶片出口改採許可制",
+            "relation": "美國繼對周邊國家實施許可制後，進一步要求算力服務商實質禁止向中企出租輝達晶片。"
+          }
+        ]
+      },
+      {
+        "category": "商業與市場動態",
+        "source": "科技新報 AI",
+        "title": "歐洲軟體龍頭 SAP 傳擬裁員萬人 加速 AI 轉型",
+        "bullets": [
+          "歐洲軟體巨頭 SAP 傳將展開新一輪組織重組，預計裁減至少 1 萬名員工，占全球人力比例高達 9%。",
+          "公司將資源全面傾斜至生成式 AI 研發與企業 AI 專案落地，預估重組費用將達數十億歐元。",
+          "裁員範疇涵蓋非核心業務與舊架構部門，同時針對 AI 領域招聘與培訓具備對應技能的人才。"
+        ],
+        "analysis": "SAP 大規模裁員標誌著傳統企管軟體業者邁入劇烈轉型期，將人力與資本重配置至 AI 領域以維持競爭優勢。",
+        "url": "https://technews.tw/2026/11/27/sap-weighs-cutting-at-least-10000-positions-in-ai-restructuring/",
+        "related_history": []
+      },
+      {
+        "category": "商業與市場動態",
+        "source": "科技新報 AI",
+        "title": "AI 狂潮暗藏 2007 年次貸翻版！大賣空貝瑞示警：CDS 已拉響信用警報",
+        "bullets": [
+          "《大賣空》主角原型麥可·貝瑞（Michael Burry）警告，目前 AI 算力融資結構與 2007 年次貸危機高度相似。",
+          "新興雲端服務商以高價 GPU 作為抵押品進行高槓桿融資，其信用違約交換（CDS）利差已拉響警報。",
+          "貝瑞指出若科技巨頭調降算力資本支出或租賃需求放緩，極易引發連環違約與資產價格崩盤。"
+        ],
+        "analysis": "市場對 AI 算力過度融資與影子債務的疑慮持續深化，高槓桿算力服務商的流動性壓力恐引發科技股估值修整。",
+        "url": "https://finance.technews.tw/2026/11/27/subprime-mortgage-crisis/",
+        "related_history": []
+      },
+      {
+        "category": "模型與技術突破",
+        "source": "科技新報 AI",
+        "title": "陶哲軒疾呼轉向「數學 2.0」：盲目追求解題已有害，人類應改為詮釋 AI 證明",
+        "bullets": [
+          "菲爾茲獎得主陶哲軒於哈佛大學演講指出，AI 在解題速度與效率上已超越人類，繼續追求單純解題將無顯著效益。",
+          "呼籲數學界轉向「數學 2.0」，人類學者應將焦點從解題轉為解讀、驗證與詮釋 AI 所產生的複雜證明。",
+          "倡導建立人機協同架構，運用大模型輔助數學家發現新概念與定理，而非單純重複算術與推理任務。"
+        ],
+        "analysis": "頂尖數學家的觀點轉變顯示 AI 已徹底改變基礎科學的研究範式，人類角色的價值將逐漸轉向符號解讀與抽象架構設計。",
+        "url": "https://technews.tw/2026/11/26/terence-tao-on-ais-impact-on-mathematics/",
+        "related_history": [
+          {
+            "date": "2026-11-08",
+            "title": "OpenAI 發表逾 700 篇 AI 數學論文，數學家指有突破性但品質參差不齊",
+            "relation": "延續 AI 在數學領域的大量產出討論，陶哲軒進一步提出人類應如何應對與詮釋這些 AI 生成證明。"
+          }
+        ]
+      },
+      {
+        "category": "硬體與應用落地",
+        "source": "科技新報 AI",
+        "title": "記憶體價格暴漲 500%，中小電子廠翻遍 eBay、聯繫數百家掮客找貨",
+        "bullets": [
+          "由於 AI 伺服器排擠高頻寬記憶體（HBM）與高容量 DRAM 產能，一般記憶體價格飆升最高達 500%。",
+          "中小型電子製造商被迫成立「採購戰情室」，甚至在 eBay 或透過黑市掮客高價搶購所需記憶體零件。",
+          "業界預估記憶體嚴重短缺與價格高漲狀況將持續至 2027 年，嚴重壓迫非 AI 電子產線的利潤與出貨。"
+        ],
+        "analysis": "AI 基礎建設的零組件黑洞效應擴大，大幅扭曲全球半導體供應鏈，傳統電子產業將承受沉重的成本轉嫁壓力。",
+        "url": "https://technews.tw/2026/11/27/electronics-manufacturers-set-up-memory-war-rooms-to-find-lock-in-dram-supplies-amid-worst-shortage-in-history/",
+        "related_history": []
+      },
+      {
+        "category": "模型與技術突破",
+        "source": "科技新報 AI",
+        "title": "AI 解理論物理難題正確率 98%，每題成本不到 3 美元",
+        "bullets": [
+          "印度理論科學中心（ICTS）研究團隊利用專門優化的 AI 模型，解理論物理難題正確率達 98%。",
+          "該模型處理單一複雜理論物理問題的平均運算成本降至不到 3 美元，大幅低於傳統超算與人工計算成本。",
+          "研究顯示大語言模型配合推論擴展（Inference scaling）可在量子力學與相對論推導中展現優異效能。"
+        ],
+        "analysis": "高效能且低成本的物理專用 AI 模型正加速科研自動化，推動尖端學術機構以低廉資本取得強大運算推論資源。",
+        "url": "https://technews.tw/2026/11/26/ai-reshaping-theoretical-physics/",
+        "related_history": []
+      },
+      {
+        "category": "政策法規與資安隱私",
+        "source": "科技新報 AI",
+        "title": "貓王過世快 50 年，AI 竟然讓他「開口唱新歌」？Suno 遭追加指控",
+        "bullets": [
+          "知名歌手貓王（Elvis Presley）與阿姆（Eminem）的版權持有方更新對 AI 音樂生成平台 Suno 的訴訟內容。",
+          "原告新增超過 100 首涉嫌侵權的 AI 生成曲目，指控 Suno 未經授權使用原唱聲線與音樂作品進行模型訓練。",
+          "訴訟強調生成式 AI 在聲音特徵與演唱風格上的高度仿製，已嚴重損害藝人肖像權與數位版權價值。"
+        ],
+        "analysis": "AI 音樂版權訴訟持續升溫，生成式語音與聲線權利的法律界定將成為未來音樂產業與 AI 平台發展的核心爭議。",
+        "url": "https://finance.technews.tw/2026/11/27/elvis-presley-rightsholders-amend-suno-lawsuit-adding-more-than-100-allegedly-infringing-ai-tracks/",
+        "related_history": [
+          {
+            "date": "2026-11-08",
+            "title": "Elvis 與 Eminem 版權持有者起訴 Suno",
+            "relation": "原告方針對同一訴訟提出補充證據與追加侵權曲目清單。"
+          }
+        ]
+      },
+      {
+        "category": "硬體與應用落地",
+        "source": "科技新報 AI",
+        "title": "「iPod 之父」揭 OpenAI 聯手強尼艾夫做硬體內幕：蘋果死守隱私不放行環境資料",
+        "bullets": [
+          "前蘋果設計總監強納森·艾夫（Jony Ive）與 OpenAI 合作開發新一代 AI 硬體裝置內幕曝光。",
+          "消息指團隊曾希望整合蘋果生態系中的環境感知資料，但因蘋果嚴格死守用戶隱私權限而遭到拒絕。",
+          "該硬體專案轉而自主研發感測器與獨立環境互動介面，試圖打造超越智慧型手機介面的人機互動裝置。"
+        ],
+        "analysis": "OpenAI 跨足硬體面臨巨頭生態體系與隱私護城河的雙重挑戰，獨立 AI 硬體能否突破傳統手機介面仍待市場考驗。",
+        "url": "https://technews.tw/2026/11/27/openai-hardware-inside-story/",
+        "related_history": []
+      }
+    ]
+  },
+  {
     "date": "2026-11-26",
     "generated_at": "2026-11-26T14:43:59+08:00",
     "items": [
